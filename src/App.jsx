@@ -59,27 +59,114 @@ function QRCodeSVG({ text, size = 240 }) {
 }
 
 const SEED_CATEGORIES = [
-  { id: "postres", label: "Postres" },
-  { id: "bebidas", label: "Bebidas" },
-  { id: "comidas", label: "Comidas" },
+  { id: "platos_catrachos", label: "Platos Catrachos" },
+  { id: "baleadas", label: "Baleadas" },
+  { id: "desayunos_dulces", label: "Desayunos Dulces" },
+  { id: "platos_principales", label: "Platos Principales" },
+  { id: "entradas", label: "Entradas" },
+  { id: "alitas_de_pollo", label: "Alitas de Pollo" },
+  { id: "cortes", label: "Cortes" },
+  { id: "refrescadores", label: "Refrescadores" },
+  { id: "shakes", label: "Shakes" },
   { id: "naturales", label: "Naturales" },
-  { id: "cafes", label: "Cafés" },
+  { id: "iced_coffee", label: "Iced Coffee" },
+  { id: "hot_coffee", label: "Hot Coffee" },
 ];
 
+const MENU_VERSION = 2;
 const STAMPS_FOR_REWARD = 6;
 const ADMIN_PIN = "1027";
 const INSTAGRAM_URL = "https://www.instagram.com/chilas_brownies?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==";
 
 const SEED_PRODUCTS = [
-  { id: "p1", name: "Brownie clásico", category: "postres", price: 45, description: "Chocolate intenso, centro húmedo.", available: true },
-  { id: "p2", name: "Brownie con nutella", category: "postres", price: 55, description: "Relleno de nutella y nuez.", available: true },
-  { id: "p3", name: "Galleta chispas de chocolate", category: "postres", price: 25, description: "Suave por dentro, crujiente por fuera.", available: true },
-  { id: "p4", name: "Galleta avena y pasas", category: "postres", price: 25, description: "Receta de la casa.", available: false },
-  { id: "p5", name: "Baleada especial", category: "comidas", price: 60, description: "Con pollo, frijoles y queso.", available: true },
-  { id: "p6", name: "Café con leche", category: "cafes", price: 35, description: "Grano tostado local.", available: true },
-  { id: "p7", name: "Fresco de sandía", category: "naturales", price: 30, description: "Natural, sin azúcar añadida.", available: true },
-  { id: "p8", name: "Soda de fresa", category: "bebidas", price: 25, description: "Bien fría, ideal para acompañar.", available: true },
+  // Platos Catrachos
+  { id: "p1", name: "Plato Catracho", category: "platos_catrachos", price: 185, description: "Frijoles, carne, plátano maduro, huevo, 2 tortillas, queso & mantequilla.", available: true },
+  { id: "p2", name: "La Burrita", category: "platos_catrachos", price: 95, description: "Tortilla de maíz con quesillo, frijoles, huevo, plátano maduro, chorizo, aguacate, queso & mantequilla.", available: true },
+  { id: "p3", name: "Huevo Ranchero", category: "platos_catrachos", price: 145, description: "Huevo estrellado, salsa ranchera, frijoles, plátano maduro, 2 tortillas, queso & mantequilla.", available: true },
+
+  // Baleadas
+  { id: "p4", name: "Baleada Sencilla", category: "baleadas", price: 25, description: "", available: true },
+  { id: "p5", name: "Baleada Con Huevo", category: "baleadas", price: 35, description: "", available: true },
+  { id: "p6", name: "La Baleadita", category: "baleadas", price: 45, description: "", available: true },
+  { id: "p7", name: "Baleada Con Todo", category: "baleadas", price: 75, description: "", available: true },
+
+  // Desayunos Dulces
+  { id: "p8", name: "Tostada Francesa", category: "desayunos_dulces", price: 185, description: "Helado de vainilla, dulce de leche & miel.", available: true },
+  { id: "p9", name: "Pancake Clásico", category: "desayunos_dulces", price: 140, description: "3 panqueques, azúcar glass & miel.", available: true },
+  { id: "p10", name: "Nutella Pancake", category: "desayunos_dulces", price: 165, description: "3 panqueques, nutella, azúcar glass & miel.", available: true },
+  { id: "p11", name: "Cinnamon Roll Pancake", category: "desayunos_dulces", price: 210, description: "3 panqueques, relleno de canela, glaseado de queso crema & miel.", available: true },
+  { id: "p12", name: "Waffle Clásico", category: "desayunos_dulces", price: 140, description: "Waffle, azúcar glass & miel.", available: true },
+  { id: "p13", name: "Nutella Waffle", category: "desayunos_dulces", price: 185, description: "Waffle, nutella, azúcar glass & helado de vainilla.", available: true },
+  { id: "p14", name: "Triple Chocolate Waffle", category: "desayunos_dulces", price: 220, description: "Waffle, nutella, galleta de chocolate & helado de chocolate.", available: true },
+
+  // Platos Principales
+  { id: "p15", name: "Chilaquiles", category: "platos_principales", price: 265, description: "Tortilla de maíz frita en salsa roja, carne de res, frijoles, huevo estrellado, guacamole, crema & queso.", available: true },
+  { id: "p16", name: "Water Burger", category: "platos_principales", price: 310, description: "Carne de res & cerdo, queso muenster & papas fritas.", available: true },
+  { id: "p17", name: "Chicken Burger", category: "platos_principales", price: 295, description: "Pechuga de pollo empanizada, queso, lechuga, aderezo y papas fritas.", available: true },
+  { id: "p18", name: "Toscana", category: "platos_principales", price: 295, description: "Pechuga de pollo a la plancha, ensalada primavera, papas fritas, pan con ajo y aderezo.", available: true },
+  { id: "p19", name: "Tenders de Pollo", category: "platos_principales", price: 265, description: "Tiras de pollo empanizadas, papas fritas, ranch & ketchup.", available: true },
+
+  // Entradas
+  { id: "p20", name: "Papas Preparadas", category: "entradas", price: 195, description: "Papas fritas, pechuga de pollo empanizada, queso cheddar, ketchup & aderezo de la casa.", available: true },
+  { id: "p21", name: "Nachos de Pollo", category: "entradas", price: 199, description: "Tortilla de maíz frita, pollo, pico de gallo, queso cheddar, aderezo de la casa & jalapeño.", available: true },
+  { id: "p22", name: "Burrito Cesar", category: "entradas", price: 180, description: "Tortilla de harina, pollo, lechuga, pico de gallo, aderezo de la casa & queso mozzarella.", available: true },
+
+  // Alitas de Pollo
+  { id: "p23", name: "6 Alitas", category: "alitas_de_pollo", price: 210, description: "Salsas a elegir: BBQ, Buffalo o Agridulce.", available: true },
+  { id: "p24", name: "12 Alitas", category: "alitas_de_pollo", price: 320, description: "Salsas a elegir: BBQ, Buffalo o Agridulce.", available: true },
+  { id: "p25", name: "18 Alitas", category: "alitas_de_pollo", price: 455, description: "Salsas a elegir: BBQ, Buffalo o Agridulce.", available: true },
+
+  // Cortes
+  { id: "p26", name: "Puyazo (12oz)", category: "cortes", price: 490, description: "Papas fritas, ensalada primavera, pan con ajo y aderezo.", available: true },
+  { id: "p27", name: "Ribeye (12oz)", category: "cortes", price: 550, description: "Papas fritas, ensalada primavera, pan con ajo y aderezo.", available: true },
+
+  // Refrescadores (12oz / 16oz)
+  { id: "p28", name: "Deslumbrado", category: "refrescadores", price: 75, description: "12oz L.75 / 16oz L.95", available: true },
+  { id: "p29", name: "Zudrink", category: "refrescadores", price: 75, description: "12oz L.75 / 16oz L.95", available: true },
+  { id: "p30", name: "Berry Berry", category: "refrescadores", price: 75, description: "12oz L.75 / 16oz L.95", available: true },
+  { id: "p31", name: "Limonada de Coco", category: "refrescadores", price: 85, description: "12oz L.85 / 16oz L.110", available: true },
+
+  // Shakes (12oz / 16oz)
+  { id: "p32", name: "Chila's Shake", category: "shakes", price: 130, description: "12oz L.130 / 16oz L.160", available: true },
+  { id: "p33", name: "Pink Party Shake", category: "shakes", price: 75, description: "12oz L.75 / 16oz L.95", available: true },
+  { id: "p34", name: "Vainilla Shake", category: "shakes", price: 75, description: "12oz L.75 / 16oz L.95", available: true },
+  { id: "p35", name: "Oreo Milk Shake", category: "shakes", price: 85, description: "12oz L.85 / 16oz L.110", available: true },
+  { id: "p36", name: "Taro", category: "shakes", price: 75, description: "12oz L.75 / 16oz L.90", available: true },
+  { id: "p37", name: "Dulce de Leche", category: "shakes", price: 75, description: "12oz L.75 / 16oz L.90", available: true },
+  { id: "p38", name: "Horchata", category: "shakes", price: 75, description: "12oz L.75 / 16oz L.90", available: true },
+  { id: "p39", name: "Chai", category: "shakes", price: 75, description: "12oz L.75 / 16oz L.90", available: true },
+
+  // Naturales (12oz / 16oz — mismo precio que Refrescadores)
+  { id: "p40", name: "Sandía", category: "naturales", price: 75, description: "12oz L.75 / 16oz L.95", available: true },
+  { id: "p41", name: "Melón", category: "naturales", price: 75, description: "12oz L.75 / 16oz L.95", available: true },
+  { id: "p42", name: "Piña", category: "naturales", price: 75, description: "12oz L.75 / 16oz L.95", available: true },
+  { id: "p43", name: "Fresa", category: "naturales", price: 75, description: "12oz L.75 / 16oz L.95", available: true },
+  { id: "p44", name: "Fresa Limón", category: "naturales", price: 75, description: "12oz L.75 / 16oz L.95", available: true },
+  { id: "p45", name: "Limonada", category: "naturales", price: 75, description: "12oz L.75 / 16oz L.95", available: true },
+
+  // Iced Coffee (12oz / 16oz)
+  { id: "p46", name: "Mocha", category: "iced_coffee", price: 85, description: "12oz L.85 / 16oz L.105", available: true },
+  { id: "p47", name: "Mocha Blanco", category: "iced_coffee", price: 85, description: "12oz L.85 / 16oz L.105", available: true },
+  { id: "p48", name: "Latte", category: "iced_coffee", price: 75, description: "12oz L.75 / 16oz L.95", available: true },
+  { id: "p49", name: "Caramel Latte", category: "iced_coffee", price: 82, description: "12oz L.82 / 16oz L.102", available: true },
+  { id: "p50", name: "Red Velvet Latte", category: "iced_coffee", price: 88, description: "12oz L.88 / 16oz L.108", available: true },
+  { id: "p51", name: "Tres Leches Latte", category: "iced_coffee", price: 85, description: "12oz L.85 / 16oz L.105", available: true },
+  { id: "p52", name: "Matcha", category: "iced_coffee", price: 90, description: "12oz L.90 / 16oz L.110", available: true },
+  { id: "p53", name: "Matcha + Fresa", category: "iced_coffee", price: 99, description: "12oz L.99 / 16oz L.120", available: true },
+
+  // Hot Coffee
+  { id: "p54", name: "Americano", category: "hot_coffee", price: 53, description: "", available: true },
+  { id: "p55", name: "Mocha", category: "hot_coffee", price: 85, description: "", available: true },
+  { id: "p56", name: "Mocha Blanco", category: "hot_coffee", price: 85, description: "", available: true },
+  { id: "p57", name: "Capuchino", category: "hot_coffee", price: 70, description: "", available: true },
+  { id: "p58", name: "Latte", category: "hot_coffee", price: 70, description: "", available: true },
+  { id: "p59", name: "Caramel Latte", category: "hot_coffee", price: 85, description: "", available: true },
+  { id: "p60", name: "Chai", category: "hot_coffee", price: 75, description: "", available: true },
+  { id: "p61", name: "Café Bombón", category: "hot_coffee", price: 75, description: "", available: true },
+  { id: "p62", name: "Matcha", category: "hot_coffee", price: 90, description: "", available: true },
 ];
+
+
 
 function normalizePhone(v) {
   return v.replace(/\D/g, "").slice(0, 8);
@@ -143,8 +230,11 @@ function loadConfigOnce() {
         }
       }
       if (!config || typeof config !== "object") {
-        config = { products: SEED_PRODUCTS, categories: SEED_CATEGORIES, shareUrl: "" };
-        if (!res) robustSet("store-config", JSON.stringify(config), true, 6);
+        config = { products: SEED_PRODUCTS, categories: SEED_CATEGORIES, shareUrl: "", menuVersion: MENU_VERSION };
+        robustSet("store-config", JSON.stringify(config), true, 6);
+      } else if (config.menuVersion !== MENU_VERSION) {
+        config = { products: SEED_PRODUCTS, categories: SEED_CATEGORIES, shareUrl: config.shareUrl || "", menuVersion: MENU_VERSION };
+        robustSet("store-config", JSON.stringify(config), true, 6);
       }
       if (!Array.isArray(config.products)) config.products = SEED_PRODUCTS;
       if (!Array.isArray(config.categories)) config.categories = SEED_CATEGORIES;
@@ -503,8 +593,14 @@ function CatalogTab({ products, saveProducts, categories, saveCategories, isAdmi
                     <span className="text-[10px] font-body font-semibold px-2 py-0.5 rounded-full" style={{ background: C.line, color: C.inkSoft }}>Agotado</span>
                   )}
                 </div>
-                <div className="font-body text-sm mt-0.5" style={{ color: C.inkSoft }}>{p.description}</div>
-                <div className="font-display font-semibold text-sm mt-1.5 gold-text-grad">L. {p.price}</div>
+                {/^\d+oz L\.\d+ \/ \d+oz L\.\d+$/.test(p.description) ? (
+                  <div className="font-display font-semibold text-sm mt-1.5 gold-text-grad">{p.description}</div>
+                ) : (
+                  <>
+                    <div className="font-body text-sm mt-0.5" style={{ color: C.inkSoft }}>{p.description}</div>
+                    <div className="font-display font-semibold text-sm mt-1.5 gold-text-grad">L. {p.price}</div>
+                  </>
+                )}
               </div>
               {isAdmin && (
                 <div className="flex flex-col gap-1.5 flex-shrink-0">
