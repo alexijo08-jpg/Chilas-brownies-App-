@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Plus, Minus, Trash2, Pencil, Check, Sparkles, ChevronRight, Gift, Circle, Lock, Unlock, QrCode, X, Copy } from "lucide-react";
+import { Plus, Minus, Trash2, Pencil, Check, Sparkles, ChevronRight, ChevronUp, ChevronDown, Gift, Circle, Lock, Unlock, QrCode, X, Copy } from "lucide-react";
 
 // QR Code Generator for JavaScript (c) 2009 Kazuhiko Arase, MIT license.
 // Embedded locally so QR codes render without any external network request.
@@ -82,6 +82,15 @@ const SEED_PRODUCTS = [
 
 function normalizePhone(v) {
   return v.replace(/\D/g, "").slice(0, 8);
+}
+
+function formatVisitDate(iso) {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleString("es-HN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+  } catch {
+    return "";
+  }
 }
 
 const memoryCache = { config: null, configPromise: null, customers: new Map() };
@@ -310,7 +319,65 @@ function ProductForm({ initial, categories, onSave, onCancel }) {
   );
 }
 
-function CatalogTab({ products, saveProducts, categories, saveCategories }) {
+function AdminBar({ isAdmin, onUnlock, onLock }) {
+  const [showPrompt, setShowPrompt] = useState(false);
+  const [pinInput, setPinInput] = useState("");
+  const [pinError, setPinError] = useState(false);
+
+  const attempt = () => {
+    if (pinInput === ADMIN_PIN) {
+      onUnlock();
+      setShowPrompt(false);
+      setPinInput("");
+      setPinError(false);
+    } else {
+      setPinError(true);
+    }
+  };
+
+  return (
+    <>
+      <div className="flex items-center justify-between rounded-xl px-3.5 py-2.5 mb-4" style={{ background: isAdmin ? C.gold + "15" : C.paper, border: `1px solid ${C.line}` }}>
+        <div className="flex items-center gap-2">
+          {isAdmin ? <Unlock size={14} color={C.gold} /> : <Lock size={14} color={C.inkSoft} />}
+          <span className="font-body text-xs" style={{ color: isAdmin ? C.goldDeep : C.inkSoft }}>
+            {isAdmin ? "Modo admin activo" : "Solo lectura — se necesita clave de administrador"}
+          </span>
+        </div>
+        {isAdmin ? (
+          <button className="font-body text-xs underline flex-shrink-0" style={{ color: C.inkSoft }} onClick={onLock}>
+            Salir
+          </button>
+        ) : (
+          <button className="font-body text-xs font-semibold underline flex-shrink-0" style={{ color: C.gold }} onClick={() => setShowPrompt(true)}>
+            Desbloquear
+          </button>
+        )}
+      </div>
+
+      {showPrompt && !isAdmin && (
+        <div className="rounded-xl p-3.5 mb-4 flex gap-2 bg-white" style={{ border: `1.5px solid ${C.goldLight}` }}>
+          <input
+            className="flex-1 rounded-lg px-3 py-2 font-body text-sm outline-none text-center tracking-widest"
+            style={{ border: `1.5px solid ${pinError ? C.berry : C.line}`, background: C.paper }}
+            placeholder="Clave"
+            type="password"
+            inputMode="numeric"
+            value={pinInput}
+            onChange={(e) => { setPinInput(e.target.value); setPinError(false); }}
+            onKeyDown={(e) => e.key === "Enter" && attempt()}
+            autoFocus
+          />
+          <button className="rounded-lg px-4 font-display font-semibold text-sm text-white gold-grad flex-shrink-0" onClick={attempt}>
+            Entrar
+          </button>
+        </div>
+      )}
+    </>
+  );
+}
+
+function CatalogTab({ products, saveProducts, categories, saveCategories, isAdmin, onUnlock, onLock }) {
   const [activeCat, setActiveCat] = useState((categories || [])[0]?.id || "");
   const [editingId, setEditingId] = useState(null);
   const [adding, setAdding] = useState(false);
@@ -330,6 +397,26 @@ function CatalogTab({ products, saveProducts, categories, saveCategories }) {
     setAdding(false);
   };
 
+  const moveProduct = (id, direction) => {
+    const idx = products.findIndex((p) => p.id === id);
+    if (idx === -1) return;
+    const cat = products[idx].category;
+    let swapIdx = -1;
+    if (direction === "up") {
+      for (let i = idx - 1; i >= 0; i--) {
+        if (products[i].category === cat) { swapIdx = i; break; }
+      }
+    } else {
+      for (let i = idx + 1; i < products.length; i++) {
+        if (products[i].category === cat) { swapIdx = i; break; }
+      }
+    }
+    if (swapIdx === -1) return;
+    const next = [...products];
+    [next[idx], next[swapIdx]] = [next[swapIdx], next[idx]];
+    saveProducts(next);
+  };
+
   const removeCategory = (id) => {
     saveCategories(categories.filter((c) => c.id !== id));
   };
@@ -345,6 +432,8 @@ function CatalogTab({ products, saveProducts, categories, saveCategories }) {
 
   return (
     <div>
+      <AdminBar isAdmin={isAdmin} onUnlock={onUnlock} onLock={onLock} />
+
       <div className="flex items-center gap-2 mb-2">
         <div className="flex gap-2 flex-1 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
           {categories.map((c) => {
@@ -356,16 +445,18 @@ function CatalogTab({ products, saveProducts, categories, saveCategories }) {
             );
           })}
         </div>
-        <button
-          onClick={() => setEditingCats((v) => !v)}
-          className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center"
-          style={editingCats ? { background: C.ink } : { border: `1.5px solid ${C.line}` }}
-        >
-          <Pencil size={14} color={editingCats ? "white" : C.inkSoft} />
-        </button>
+        {isAdmin && (
+          <button
+            onClick={() => setEditingCats((v) => !v)}
+            className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center"
+            style={editingCats ? { background: C.ink } : { border: `1.5px solid ${C.line}` }}
+          >
+            <Pencil size={14} color={editingCats ? "white" : C.inkSoft} />
+          </button>
+        )}
       </div>
 
-      {editingCats && (
+      {editingCats && isAdmin && (
         <div className="rounded-2xl p-4 mb-5 space-y-2.5 bg-white" style={{ border: `1.5px solid ${C.goldLight}` }}>
           <div className="font-display font-semibold text-sm mb-1" style={{ color: C.ink }}>Editar categorías</div>
           {categories.map((c) => (
@@ -396,7 +487,7 @@ function CatalogTab({ products, saveProducts, categories, saveCategories }) {
       )}
 
       <div className="space-y-3">
-        {filtered.map((p) =>
+        {filtered.map((p, i) =>
           editingId === p.id ? (
             <ProductForm key={p.id} initial={p} categories={categories} onSave={(data) => { updateProduct(p.id, data); setEditingId(null); }} onCancel={() => setEditingId(null)} />
           ) : (
@@ -412,17 +503,27 @@ function CatalogTab({ products, saveProducts, categories, saveCategories }) {
                 <div className="font-body text-sm mt-0.5" style={{ color: C.inkSoft }}>{p.description}</div>
                 <div className="font-display font-semibold text-sm mt-1.5 gold-text-grad">L. {p.price}</div>
               </div>
-              <div className="flex flex-col gap-1.5 flex-shrink-0">
-                <button onClick={() => updateProduct(p.id, { available: !p.available })} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: C.paper }}>
-                  <Check size={14} color={C.gold} />
-                </button>
-                <button onClick={() => setEditingId(p.id)} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: C.paper }}>
-                  <Pencil size={14} color={C.inkSoft} />
-                </button>
-                <button onClick={() => deleteProduct(p.id)} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: C.paper }}>
-                  <Trash2 size={14} color={C.berry} />
-                </button>
-              </div>
+              {isAdmin && (
+                <div className="flex flex-col gap-1.5 flex-shrink-0">
+                  <div className="flex gap-1">
+                    <button disabled={i === 0} onClick={() => moveProduct(p.id, "up")} className="w-8 h-8 rounded-full flex items-center justify-center disabled:opacity-30" style={{ background: C.paper }}>
+                      <ChevronUp size={14} color={C.inkSoft} />
+                    </button>
+                    <button disabled={i === filtered.length - 1} onClick={() => moveProduct(p.id, "down")} className="w-8 h-8 rounded-full flex items-center justify-center disabled:opacity-30" style={{ background: C.paper }}>
+                      <ChevronDown size={14} color={C.inkSoft} />
+                    </button>
+                  </div>
+                  <button onClick={() => updateProduct(p.id, { available: !p.available })} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: C.paper }}>
+                    <Check size={14} color={C.gold} />
+                  </button>
+                  <button onClick={() => setEditingId(p.id)} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: C.paper }}>
+                    <Pencil size={14} color={C.inkSoft} />
+                  </button>
+                  <button onClick={() => deleteProduct(p.id)} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: C.paper }}>
+                    <Trash2 size={14} color={C.berry} />
+                  </button>
+                </div>
+              )}
             </div>
           )
         )}
@@ -431,7 +532,7 @@ function CatalogTab({ products, saveProducts, categories, saveCategories }) {
         )}
       </div>
 
-      {categories.length === 0 ? null : adding ? (
+      {!isAdmin || categories.length === 0 ? null : adding ? (
         <div className="mt-3"><ProductForm initial={{ name: "", category: activeCat, price: "", description: "", available: true }} categories={categories} onSave={addProduct} onCancel={() => setAdding(false)} /></div>
       ) : (
         <button onClick={() => setAdding(true)} className="mt-3 w-full rounded-2xl py-3.5 font-display font-semibold text-sm flex items-center justify-center gap-1" style={{ border: `1.5px dashed ${C.goldLight}`, color: C.gold }}>
@@ -442,7 +543,7 @@ function CatalogTab({ products, saveProducts, categories, saveCategories }) {
   );
 }
 
-function PointsTab() {
+function PointsTab({ isAdmin, onUnlock, onLock }) {
   const [phone, setPhone] = useState("");
   const [activePhone, setActivePhone] = useState(null);
   const [name, setName] = useState("");
@@ -451,31 +552,16 @@ function PointsTab() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(false);
   const [askName, setAskName] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [showPinPrompt, setShowPinPrompt] = useState(false);
-  const [pinInput, setPinInput] = useState("");
-  const [pinError, setPinError] = useState(false);
-
-  const tryUnlock = () => {
-    if (pinInput === ADMIN_PIN) {
-      setIsAdmin(true);
-      setShowPinPrompt(false);
-      setPinInput("");
-      setPinError(false);
-    } else {
-      setPinError(true);
-    }
-  };
 
   const load = async (ph) => {
     setLoading(true);
     const c = await getCustomer(ph);
     if (c) {
       setName(c.name || "");
-      setVisits(c.visits || { units: 0, redeemed: 0 });
+      setVisits(c.visits ? { history: [], ...c.visits } : { units: 0, redeemed: 0, history: [] });
       setAskName(!c.name);
     } else {
-      setVisits({ units: 0, redeemed: 0 });
+      setVisits({ units: 0, redeemed: 0, history: [] });
       setAskName(true);
     }
     setActivePhone(ph);
@@ -497,13 +583,15 @@ function PointsTab() {
   };
 
   const addVisit = async () => {
-    await commitCustomer({ ...visits, units: visits.units + 1 });
+    const history = [new Date().toISOString(), ...(visits.history || [])];
+    await commitCustomer({ ...visits, units: visits.units + 1, history });
   };
 
   const removeVisit = async () => {
     const nextUnits = Math.max(0, visits.units - 1);
     const nextRedeemed = Math.min(visits.redeemed, Math.floor(nextUnits / STAMPS_FOR_REWARD));
-    await commitCustomer({ units: nextUnits, redeemed: nextRedeemed });
+    const history = (visits.history || []).slice(1);
+    await commitCustomer({ units: nextUnits, redeemed: nextRedeemed, history });
   };
 
   const redeemReward = async () => {
@@ -562,42 +650,7 @@ function PointsTab() {
         </div>
       )}
 
-      <div className="flex items-center justify-between rounded-xl px-3.5 py-2.5 mb-4" style={{ background: isAdmin ? C.gold + "15" : C.paper, border: `1px solid ${C.line}` }}>
-        <div className="flex items-center gap-2">
-          {isAdmin ? <Unlock size={14} color={C.gold} /> : <Lock size={14} color={C.inkSoft} />}
-          <span className="font-body text-xs" style={{ color: isAdmin ? C.goldDeep : C.inkSoft }}>
-            {isAdmin ? "Modo admin activo" : "Solo lectura — se necesita clave para dar o quitar puntos"}
-          </span>
-        </div>
-        {isAdmin ? (
-          <button className="font-body text-xs underline flex-shrink-0" style={{ color: C.inkSoft }} onClick={() => setIsAdmin(false)}>
-            Salir
-          </button>
-        ) : (
-          <button className="font-body text-xs font-semibold underline flex-shrink-0" style={{ color: C.gold }} onClick={() => setShowPinPrompt(true)}>
-            Desbloquear
-          </button>
-        )}
-      </div>
-
-      {showPinPrompt && (
-        <div className="rounded-xl p-3.5 mb-4 flex gap-2 bg-white" style={{ border: `1.5px solid ${C.goldLight}` }}>
-          <input
-            className="flex-1 rounded-lg px-3 py-2 font-body text-sm outline-none text-center tracking-widest"
-            style={{ border: `1.5px solid ${pinError ? C.berry : C.line}`, background: C.paper }}
-            placeholder="Clave"
-            type="password"
-            inputMode="numeric"
-            value={pinInput}
-            onChange={(e) => { setPinInput(e.target.value); setPinError(false); }}
-            onKeyDown={(e) => e.key === "Enter" && tryUnlock()}
-            autoFocus
-          />
-          <button className="rounded-lg px-4 font-display font-semibold text-sm text-white gold-grad flex-shrink-0" onClick={tryUnlock}>
-            Entrar
-          </button>
-        </div>
-      )}
+      <AdminBar isAdmin={isAdmin} onUnlock={onUnlock} onLock={onLock} />
 
       {askName && (
         <div className="rounded-xl p-3 mb-4 flex gap-2 bg-white" style={{ border: `1.5px solid ${C.goldLight}` }}>
@@ -626,6 +679,20 @@ function PointsTab() {
         <button disabled={saving} className="mt-4 w-full rounded-2xl py-3.5 font-display font-semibold text-sm flex items-center justify-center gap-1" style={{ border: `1.5px dashed ${C.goldLight}`, color: C.gold, opacity: saving ? 0.6 : 1 }} onClick={addVisit}>
           <Plus size={16} /> {saving ? "Guardando..." : "Registrar visita"}
         </button>
+      )}
+
+      {visits.history && visits.history.length > 0 && (
+        <div className="mt-5 rounded-2xl p-4 bg-white" style={{ border: `1px solid ${C.line}` }}>
+          <div className="font-display font-semibold text-sm mb-2.5" style={{ color: C.ink }}>Historial de visitas</div>
+          <div className="space-y-1.5 max-h-52 overflow-y-auto">
+            {visits.history.map((iso, i) => (
+              <div key={i} className="font-body text-xs flex items-center justify-between" style={{ color: C.inkSoft }}>
+                <span>{formatVisitDate(iso)}</span>
+                {i === 0 && <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: C.gold + "15", color: C.goldDeep }}>Más reciente</span>}
+              </div>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );
@@ -754,6 +821,7 @@ function SharePanel({ shareUrl, saveShareUrl, onClose }) {
 export default function ChilasApp() {
   const [tab, setTab] = useState("catalogo");
   const [showShare, setShowShare] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const { ready, products, saveProducts, categories, saveCategories, shareUrl, saveShareUrl } = useStorage();
 
   return (
@@ -787,9 +855,9 @@ export default function ChilasApp() {
           {!ready ? (
             <div className="text-center pt-10 font-body" style={{ color: C.inkSoft }}>Cargando la tienda...</div>
           ) : tab === "catalogo" ? (
-            <CatalogTab products={products} saveProducts={saveProducts} categories={categories} saveCategories={saveCategories} />
+            <CatalogTab products={products} saveProducts={saveProducts} categories={categories} saveCategories={saveCategories} isAdmin={isAdmin} onUnlock={() => setIsAdmin(true)} onLock={() => setIsAdmin(false)} />
           ) : (
-            <PointsTab />
+            <PointsTab isAdmin={isAdmin} onUnlock={() => setIsAdmin(true)} onLock={() => setIsAdmin(false)} />
           )}
         </div>
       </div>
