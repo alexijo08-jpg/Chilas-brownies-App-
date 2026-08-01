@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Plus, Minus, Trash2, Pencil, Check, Sparkles, ChevronRight, ChevronUp, ChevronDown, Gift, Circle, Lock, Unlock, QrCode, X, Copy } from "lucide-react";
+import { Plus, Minus, Trash2, Pencil, Check, Sparkles, ChevronRight, ChevronUp, ChevronDown, Gift, Circle, Lock, Unlock, QrCode, Instagram, X, Copy } from "lucide-react";
 
 // QR Code Generator for JavaScript (c) 2009 Kazuhiko Arase, MIT license.
 // Embedded locally so QR codes render without any external network request.
@@ -68,6 +68,7 @@ const SEED_CATEGORIES = [
 
 const STAMPS_FOR_REWARD = 6;
 const ADMIN_PIN = "1027";
+const INSTAGRAM_URL = "https://www.instagram.com/chilas_brownies?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==";
 
 const SEED_PRODUCTS = [
   { id: "p1", name: "Brownie clásico", category: "postres", price: 45, description: "Chocolate intenso, centro húmedo.", available: true },
@@ -319,15 +320,15 @@ function ProductForm({ initial, categories, onSave, onCancel }) {
   );
 }
 
-function AdminBar({ isAdmin, onUnlock, onLock }) {
-  const [showPrompt, setShowPrompt] = useState(false);
+function AdminLock({ isAdmin, onUnlock, onLock }) {
+  const [open, setOpen] = useState(false);
   const [pinInput, setPinInput] = useState("");
   const [pinError, setPinError] = useState(false);
 
   const attempt = () => {
     if (pinInput === ADMIN_PIN) {
       onUnlock();
-      setShowPrompt(false);
+      setOpen(false);
       setPinInput("");
       setPinError(false);
     } else {
@@ -335,45 +336,49 @@ function AdminBar({ isAdmin, onUnlock, onLock }) {
     }
   };
 
-  return (
-    <>
-      <div className="flex items-center justify-between rounded-xl px-3.5 py-2.5 mb-4" style={{ background: isAdmin ? C.gold + "15" : C.paper, border: `1px solid ${C.line}` }}>
-        <div className="flex items-center gap-2">
-          {isAdmin ? <Unlock size={14} color={C.gold} /> : <Lock size={14} color={C.inkSoft} />}
-          <span className="font-body text-xs" style={{ color: isAdmin ? C.goldDeep : C.inkSoft }}>
-            {isAdmin ? "Modo admin activo" : "Solo lectura — se necesita clave de administrador"}
-          </span>
-        </div>
-        {isAdmin ? (
-          <button className="font-body text-xs underline flex-shrink-0" style={{ color: C.inkSoft }} onClick={onLock}>
-            Salir
-          </button>
-        ) : (
-          <button className="font-body text-xs font-semibold underline flex-shrink-0" style={{ color: C.gold }} onClick={() => setShowPrompt(true)}>
-            Desbloquear
-          </button>
-        )}
-      </div>
+  const handleClick = () => {
+    if (isAdmin) {
+      onLock();
+    } else {
+      setOpen((v) => !v);
+    }
+  };
 
-      {showPrompt && !isAdmin && (
-        <div className="rounded-xl p-3.5 mb-4 flex gap-2 bg-white" style={{ border: `1.5px solid ${C.goldLight}` }}>
-          <input
-            className="flex-1 rounded-lg px-3 py-2 font-body text-sm outline-none text-center tracking-widest"
-            style={{ border: `1.5px solid ${pinError ? C.berry : C.line}`, background: C.paper }}
-            placeholder="Clave"
-            type="password"
-            inputMode="numeric"
-            value={pinInput}
-            onChange={(e) => { setPinInput(e.target.value); setPinError(false); }}
-            onKeyDown={(e) => e.key === "Enter" && attempt()}
-            autoFocus
-          />
-          <button className="rounded-lg px-4 font-display font-semibold text-sm text-white gold-grad flex-shrink-0" onClick={attempt}>
-            Entrar
-          </button>
-        </div>
+  return (
+    <div className="relative flex-shrink-0">
+      <button
+        onClick={handleClick}
+        className="w-6 h-6 flex items-center justify-center"
+        aria-label={isAdmin ? "Salir del modo administrador" : "Acceso administrador"}
+      >
+        {isAdmin ? <Unlock size={13} color={C.gold} /> : <Lock size={13} color="#DAD4C8" />}
+      </button>
+
+      {open && !isAdmin && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 top-8 z-50 w-56 rounded-xl p-3 bg-white" style={{ border: `1px solid ${C.line}`, boxShadow: "0 8px 24px rgba(28,25,23,0.12)" }}>
+            <div className="font-body text-xs mb-2" style={{ color: C.inkSoft }}>Clave de administrador</div>
+            <div className="flex gap-2">
+              <input
+                className="flex-1 min-w-0 rounded-lg px-2.5 py-2 font-body text-sm outline-none text-center tracking-widest"
+                style={{ border: `1.5px solid ${pinError ? C.berry : C.line}`, background: C.paper }}
+                placeholder="Clave"
+                type="password"
+                inputMode="numeric"
+                value={pinInput}
+                onChange={(e) => { setPinInput(e.target.value); setPinError(false); }}
+                onKeyDown={(e) => e.key === "Enter" && attempt()}
+                autoFocus
+              />
+              <button className="rounded-lg px-3 font-display font-semibold text-xs text-white gold-grad flex-shrink-0" onClick={attempt}>
+                Entrar
+              </button>
+            </div>
+          </div>
+        </>
       )}
-    </>
+    </div>
   );
 }
 
@@ -432,8 +437,6 @@ function CatalogTab({ products, saveProducts, categories, saveCategories, isAdmi
 
   return (
     <div>
-      <AdminBar isAdmin={isAdmin} onUnlock={onUnlock} onLock={onLock} />
-
       <div className="flex items-center gap-2 mb-2">
         <div className="flex gap-2 flex-1 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
           {categories.map((c) => {
@@ -650,8 +653,6 @@ function PointsTab({ isAdmin, onUnlock, onLock }) {
         </div>
       )}
 
-      <AdminBar isAdmin={isAdmin} onUnlock={onUnlock} onLock={onLock} />
-
       {askName && (
         <div className="rounded-xl p-3 mb-4 flex gap-2 bg-white" style={{ border: `1.5px solid ${C.goldLight}` }}>
           <input
@@ -840,14 +841,27 @@ export default function ChilasApp() {
               </div>
               <div className="font-body text-sm mt-1.5" style={{ color: C.inkSoft }}>Jutiquile, Olancho · Mié–Lun 7am–7pm</div>
             </div>
-            <button
-              onClick={() => setShowShare(true)}
-              className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mt-1"
-              style={{ border: `1.5px solid ${C.line}` }}
-              aria-label="Compartir con código QR"
-            >
-              <QrCode size={18} color={C.gold} />
-            </button>
+            <div className="flex items-center gap-3 mt-1">
+              <a
+                href={INSTAGRAM_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
+                style={{ border: `1.5px solid ${C.line}` }}
+                aria-label="Instagram"
+              >
+                <Instagram size={18} color={C.gold} />
+              </a>
+              <button
+                onClick={() => setShowShare(true)}
+                className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
+                style={{ border: `1.5px solid ${C.line}` }}
+                aria-label="Compartir con código QR"
+              >
+                <QrCode size={18} color={C.gold} />
+              </button>
+              <AdminLock isAdmin={isAdmin} onUnlock={() => setIsAdmin(true)} onLock={() => setIsAdmin(false)} />
+            </div>
           </div>
         </div>
 
