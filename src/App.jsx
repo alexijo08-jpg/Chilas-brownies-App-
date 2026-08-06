@@ -78,6 +78,7 @@ const STAMPS_FOR_REWARD = 6;
 const ADMIN_PIN = "1027";
 const INSTAGRAM_URL = "https://www.instagram.com/chilas_brownies?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==";
 const WHATSAPP_URL = "https://wa.me/50487500720";
+const SITE_URL = "https://chilasbrownies.netlify.app";
 
 const SEED_PRODUCTS = [
   // Platos Catrachos
@@ -797,7 +798,7 @@ function PointsTab({ isAdmin, onUnlock, onLock }) {
 }
 
 function SharePanel({ shareUrl, saveShareUrl, onClose }) {
-  const [editing, setEditing] = useState(!shareUrl);
+  const [editing, setEditing] = useState(false);
   const [input, setInput] = useState(shareUrl || "");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -987,7 +988,7 @@ export default function ChilasApp() {
         </div>
       </div>
 
-      {showShare && <SharePanel shareUrl={shareUrl} saveShareUrl={saveShareUrl} onClose={() => setShowShare(false)} />}
+      {showShare && <SharePanel shareUrl={shareUrl || SITE_URL} saveShareUrl={saveShareUrl} onClose={() => setShowShare(false)} />}
 
       <div className="fixed bottom-0 left-0 right-0 flex justify-center">
         <div className="max-w-md w-full flex bg-white" style={{ borderTop: `1px solid ${C.line}` }}>
