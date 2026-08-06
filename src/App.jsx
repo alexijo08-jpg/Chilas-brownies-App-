@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Plus, Minus, Trash2, Pencil, Check, Sparkles, ChevronRight, ChevronUp, ChevronDown, Gift, Circle, Lock, Unlock, QrCode, Instagram, MessageCircle, Users, Search, X, Copy } from "lucide-react";
+import { Plus, Minus, Trash2, Pencil, Check, Sparkles, ChevronRight, ChevronUp, ChevronDown, Gift, Circle, Lock, Unlock, QrCode, Instagram, MessageCircle, Users, Search, Star, TrendingUp, X, Copy } from "lucide-react";
 
 // QR Code Generator for JavaScript (c) 2009 Kazuhiko Arase, MIT license.
 // Embedded locally so QR codes render without any external network request.
@@ -326,6 +326,36 @@ async function saveCustomer(phone, data) {
 async function deleteCustomer(phone) {
   memoryCache.customers.delete(phone);
   return await robustDelete(`customer:${phone}`);
+}
+
+async function trackCategoryView(categoryId) {
+  try {
+    const res = await robustGet("category-views", true);
+    let views = {};
+    if (res) {
+      try {
+        views = JSON.parse(res.value);
+        if (typeof views !== "object" || views === null) views = {};
+      } catch {
+        views = {};
+      }
+    }
+    views[categoryId] = (views[categoryId] || 0) + 1;
+    await robustSet("category-views", JSON.stringify(views), true);
+  } catch {
+    // best-effort — stats are non-critical and should never block browsing
+  }
+}
+
+async function getCategoryViews() {
+  const res = await robustGet("category-views", true);
+  if (!res) return {};
+  try {
+    const views = JSON.parse(res.value);
+    return typeof views === "object" && views !== null ? views : {};
+  } catch {
+    return {};
+  }
 }
 
 async function getAllCustomers() {
@@ -692,6 +722,58 @@ function CustomerListPanel({ onClose }) {
   );
 }
 
+function CategoryStatsPanel({ categories, onClose }) {
+  const [loading, setLoading] = useState(true);
+  const [views, setViews] = useState({});
+
+  useEffect(() => {
+    (async () => {
+      const v = await getCategoryViews();
+      setViews(v);
+      setLoading(false);
+    })();
+  }, []);
+
+  const rows = categories
+    .map((c) => ({ id: c.id, label: c.label, count: views[c.id] || 0 }))
+    .sort((a, b) => b.count - a.count);
+  const max = Math.max(1, ...rows.map((r) => r.count));
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" style={{ background: "rgba(28,25,23,0.5)" }} onClick={onClose}>
+      <div className="w-full max-w-lg bg-white rounded-t-3xl sm:rounded-3xl p-6 max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-1">
+          <div className="font-display font-semibold text-lg" style={{ color: C.ink }}>Categorías más vistas</div>
+          <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: C.paper }}>
+            <X size={16} color={C.inkSoft} />
+          </button>
+        </div>
+        <div className="font-body text-xs mb-5" style={{ color: C.inkSoft }}>Cada vez que alguien toca una categoría, cuenta como una vista. Es un indicador de interés, no de ventas.</div>
+
+        {loading ? (
+          <div className="text-center py-8 font-body text-sm" style={{ color: C.inkSoft }}>Cargando...</div>
+        ) : rows.every((r) => r.count === 0) ? (
+          <div className="text-center py-8 font-body text-sm" style={{ color: C.inkSoft }}>Todavía no hay datos suficientes.</div>
+        ) : (
+          <div className="space-y-3">
+            {rows.map((r) => (
+              <div key={r.id}>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-body text-sm font-semibold" style={{ color: C.ink }}>{r.label}</span>
+                  <span className="font-display font-semibold text-sm" style={{ color: C.gold }}>{r.count}</span>
+                </div>
+                <div className="h-2 rounded-full" style={{ background: C.paper }}>
+                  <div className="h-2 rounded-full gold-grad" style={{ width: `${(r.count / max) * 100}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function CustomerListButton({ onOpen }) {
   return (
     <button
@@ -773,6 +855,7 @@ function CatalogTab({ products, saveProducts, categories, saveCategories, isAdmi
   const [adding, setAdding] = useState(false);
   const [editingCats, setEditingCats] = useState(false);
   const [newCatLabel, setNewCatLabel] = useState("");
+  const [showStats, setShowStats] = useState(false);
 
   useEffect(() => {
     if (!categories.find((c) => c.id === activeCat)) setActiveCat((categories || [])[0]?.id || "");
@@ -827,12 +910,22 @@ function CatalogTab({ products, saveProducts, categories, saveCategories, isAdmi
           {categories.map((c) => {
             const activeStyle = activeCat === c.id ? { background: C.ink, color: "white", border: `1.5px solid ${C.ink}` } : { color: C.inkSoft, border: `1.5px solid ${C.line}` };
             return (
-              <button key={c.id} onClick={() => setActiveCat(c.id)} className="flex-shrink-0 font-display font-semibold text-sm py-2.5 px-4 rounded-full transition-all whitespace-nowrap" style={activeStyle}>
+              <button key={c.id} onClick={() => { setActiveCat(c.id); trackCategoryView(c.id); }} className="flex-shrink-0 font-display font-semibold text-sm py-2.5 px-4 rounded-full transition-all whitespace-nowrap" style={activeStyle}>
                 {c.label}
               </button>
             );
           })}
         </div>
+        {isAdmin && (
+          <button
+            onClick={() => setShowStats(true)}
+            className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center"
+            style={{ border: `1.5px solid ${C.line}` }}
+            aria-label="Ver categorías más vistas"
+          >
+            <TrendingUp size={14} color={C.inkSoft} />
+          </button>
+        )}
         {isAdmin && (
           <button
             onClick={() => setEditingCats((v) => !v)}
@@ -843,6 +936,8 @@ function CatalogTab({ products, saveProducts, categories, saveCategories, isAdmi
           </button>
         )}
       </div>
+
+      {showStats && <CategoryStatsPanel categories={categories} onClose={() => setShowStats(false)} />}
 
       {editingCats && isAdmin && (
         <div className="rounded-2xl p-4 mb-5 space-y-2.5 bg-white" style={{ border: `1.5px solid ${C.goldLight}` }}>
@@ -886,6 +981,11 @@ function CatalogTab({ products, saveProducts, categories, saveCategories, isAdmi
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <div className="font-display font-semibold text-base" style={{ color: C.ink }}>{p.name}</div>
+                  {p.featured && (
+                    <span className="text-[10px] font-body font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 gold-grad text-white">
+                      <Star size={9} fill="white" /> Más pedido
+                    </span>
+                  )}
                   {!p.available && (
                     <span className="text-[10px] font-body font-semibold px-2 py-0.5 rounded-full" style={{ background: C.line, color: C.inkSoft }}>Agotado</span>
                   )}
@@ -911,6 +1011,9 @@ function CatalogTab({ products, saveProducts, categories, saveCategories, isAdmi
                   </div>
                   <button onClick={() => updateProduct(p.id, { available: !p.available })} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: C.paper }}>
                     <Check size={14} color={C.gold} />
+                  </button>
+                  <button onClick={() => updateProduct(p.id, { featured: !p.featured })} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: p.featured ? C.gold + "20" : C.paper }} aria-label="Marcar como más pedido">
+                    <Star size={14} color={C.gold} fill={p.featured ? C.gold : "none"} />
                   </button>
                   <button onClick={() => setEditingId(p.id)} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: C.paper }}>
                     <Pencil size={14} color={C.inkSoft} />
