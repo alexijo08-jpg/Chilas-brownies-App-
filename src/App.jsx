@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Plus, Minus, Trash2, Pencil, Check, Sparkles, ChevronRight, ChevronUp, ChevronDown, Gift, Circle, Lock, Unlock, QrCode, Instagram, MessageCircle, Download, X, Copy } from "lucide-react";
-import * as XLSX from "xlsx";
+import { Plus, Minus, Trash2, Pencil, Check, Sparkles, ChevronRight, ChevronUp, ChevronDown, Gift, Circle, Lock, Unlock, QrCode, Instagram, MessageCircle, Users, X, Copy } from "lucide-react";
 
 // QR Code Generator for JavaScript (c) 2009 Kazuhiko Arase, MIT license.
 // Embedded locally so QR codes render without any external network request.
@@ -456,42 +455,75 @@ function ProductForm({ initial, categories, onSave, onCancel }) {
   );
 }
 
-function BackupButton() {
-  const [loading, setLoading] = useState(false);
+function CustomerListPanel({ onClose }) {
+  const [loading, setLoading] = useState(true);
+  const [customers, setCustomers] = useState([]);
 
-  const handleDownload = async () => {
-    if (loading) return;
-    setLoading(true);
-    try {
-      const customers = await getAllCustomers();
-      const rows = customers.map((c) => ({
-        "Teléfono": c.phone,
-        "Nombre": c.name,
-        "Visitas totales": c.visits,
-        "Premios canjeados": c.redeemed,
-        "Última visita": c.lastVisit ? formatVisitDate(c.lastVisit) : "",
-      }));
-      const ws = XLSX.utils.json_to_sheet(rows.length ? rows : [{ "Teléfono": "", "Nombre": "", "Visitas totales": "", "Premios canjeados": "", "Última visita": "" }]);
-      ws["!cols"] = [{ wch: 14 }, { wch: 24 }, { wch: 16 }, { wch: 18 }, { wch: 20 }];
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Clientes");
-      const fecha = new Date().toISOString().slice(0, 10);
-      XLSX.writeFile(wb, `respaldo-clientes-${fecha}.xlsx`);
-    } catch {
-      alert("No se pudo generar el respaldo. Intenta de nuevo.");
-    }
-    setLoading(false);
-  };
+  useEffect(() => {
+    (async () => {
+      const list = await getAllCustomers();
+      list.sort((a, b) => (b.lastVisit || "").localeCompare(a.lastVisit || ""));
+      setCustomers(list);
+      setLoading(false);
+    })();
+  }, []);
 
   return (
+    <div className="fixed inset-0 z-50 flex flex-col" style={{ background: C.paper }}>
+      <div className="flex items-center justify-between px-5 md:px-8 pt-6 pb-4 bg-white" style={{ borderBottom: `1px solid ${C.line}` }}>
+        <div>
+          <div className="font-display font-semibold text-lg" style={{ color: C.ink }}>Clientes</div>
+          <div className="font-body text-xs mt-0.5" style={{ color: C.inkSoft }}>{loading ? "Cargando..." : `${customers.length} cliente${customers.length === 1 ? "" : "s"} registrado${customers.length === 1 ? "" : "s"}`}</div>
+        </div>
+        <button onClick={onClose} className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: C.paper, border: `1px solid ${C.line}` }}>
+          <X size={18} color={C.inkSoft} />
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-5 md:px-8 py-5">
+        {loading ? (
+          <div className="text-center pt-10 font-body" style={{ color: C.inkSoft }}>Cargando clientes...</div>
+        ) : customers.length === 0 ? (
+          <div className="text-center pt-10 font-body text-sm" style={{ color: C.inkSoft }}>Todavía no hay clientes registrados.</div>
+        ) : (
+          <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
+            {customers.map((c) => {
+              const available = Math.floor(c.visits / STAMPS_FOR_REWARD) - c.redeemed;
+              return (
+                <div key={c.phone} className="rounded-2xl p-4 bg-white" style={{ border: `1px solid ${C.line}` }}>
+                  <div className="flex items-center justify-between">
+                    <div className="font-display font-semibold text-base" style={{ color: C.ink }}>{c.name || "Sin nombre"}</div>
+                    {available > 0 && (
+                      <span className="text-[10px] font-body font-semibold px-2 py-0.5 rounded-full gold-grad text-white">{available} premio{available > 1 ? "s" : ""}</span>
+                    )}
+                  </div>
+                  <div className="font-body text-sm mt-0.5" style={{ color: C.inkSoft }}>{c.phone}</div>
+                  <div className="flex items-center gap-4 mt-2.5 font-body text-sm" style={{ color: C.inkSoft }}>
+                    <span><span className="font-display font-semibold" style={{ color: C.ink }}>{c.visits}</span> visitas</span>
+                    <span><span className="font-display font-semibold" style={{ color: C.ink }}>{c.redeemed}</span> canjeados</span>
+                  </div>
+                  {c.lastVisit && (
+                    <div className="font-body text-xs mt-1.5" style={{ color: C.inkSoft }}>Última visita: {formatVisitDate(c.lastVisit)}</div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CustomerListButton({ onOpen }) {
+  return (
     <button
-      onClick={handleDownload}
-      disabled={loading}
-      className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center disabled:opacity-50"
+      onClick={onOpen}
+      className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
       style={{ border: `1.5px solid ${C.line}` }}
-      aria-label="Descargar respaldo de clientes"
+      aria-label="Ver lista de clientes"
     >
-      <Download size={18} color={C.gold} />
+      <Users size={18} color={C.gold} />
     </button>
   );
 }
@@ -1006,6 +1038,7 @@ function SharePanel({ shareUrl, saveShareUrl, onClose }) {
 export default function ChilasApp() {
   const [tab, setTab] = useState("catalogo");
   const [showShare, setShowShare] = useState(false);
+  const [showCustomers, setShowCustomers] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const { ready, products, saveProducts, categories, saveCategories, shareUrl, saveShareUrl } = useStorage();
 
@@ -1038,7 +1071,7 @@ export default function ChilasApp() {
                 >
                   <Instagram size={18} color={C.gold} />
                 </a>
-                {isAdmin && <BackupButton />}
+                {isAdmin && <CustomerListButton onOpen={() => setShowCustomers(true)} />}
                 <button
                   onClick={() => setShowShare(true)}
                   className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
@@ -1079,6 +1112,7 @@ export default function ChilasApp() {
       </div>
 
       {showShare && <SharePanel shareUrl={shareUrl || SITE_URL} saveShareUrl={saveShareUrl} onClose={() => setShowShare(false)} />}
+      {showCustomers && <CustomerListPanel onClose={() => setShowCustomers(false)} />}
 
       <div className="fixed bottom-0 left-0 right-0 bg-white" style={{ borderTop: `1px solid ${C.line}` }}>
         <div className="max-w-2xl mx-auto flex">
