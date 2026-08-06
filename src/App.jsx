@@ -60,12 +60,9 @@ function QRCodeSVG({ text, size = 240 }) {
 
 const SEED_CATEGORIES = [
   { id: "platos_catrachos", label: "Platos Catrachos" },
-  { id: "baleadas", label: "Baleadas" },
   { id: "desayunos_dulces", label: "Desayunos Dulces" },
   { id: "platos_principales", label: "Platos Principales" },
-  { id: "entradas", label: "Entradas" },
   { id: "alitas_de_pollo", label: "Alitas de Pollo" },
-  { id: "cortes", label: "Cortes" },
   { id: "refrescadores", label: "Refrescadores" },
   { id: "shakes", label: "Shakes" },
   { id: "naturales", label: "Naturales" },
@@ -73,9 +70,9 @@ const SEED_CATEGORIES = [
   { id: "hot_coffee", label: "Hot Coffee" },
 ];
 
-const MENU_VERSION = 2;
+const MENU_VERSION = 3;
 const STAMPS_FOR_REWARD = 6;
-const ADMIN_PIN = "1027";
+const ADMIN_PIN = "0022";
 const INSTAGRAM_URL = "https://www.instagram.com/chilas_brownies?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==";
 const WHATSAPP_URL = "https://wa.me/50487500720";
 const SITE_URL = "https://chilasbrownies.netlify.app";
@@ -86,11 +83,10 @@ const SEED_PRODUCTS = [
   { id: "p2", name: "La Burrita", category: "platos_catrachos", price: 95, description: "Tortilla de maíz con quesillo, frijoles, huevo, plátano maduro, chorizo, aguacate, queso & mantequilla.", available: true },
   { id: "p3", name: "Huevo Ranchero", category: "platos_catrachos", price: 145, description: "Huevo estrellado, salsa ranchera, frijoles, plátano maduro, 2 tortillas, queso & mantequilla.", available: true },
 
-  // Baleadas
-  { id: "p4", name: "Baleada Sencilla", category: "baleadas", price: 25, description: "", available: true },
-  { id: "p5", name: "Baleada Con Huevo", category: "baleadas", price: 35, description: "", available: true },
-  { id: "p6", name: "La Baleadita", category: "baleadas", price: 45, description: "", available: true },
-  { id: "p7", name: "Baleada Con Todo", category: "baleadas", price: 75, description: "", available: true },
+  { id: "p4", name: "Baleada Sencilla", category: "platos_catrachos", price: 25, description: "", available: true },
+  { id: "p5", name: "Baleada Con Huevo", category: "platos_catrachos", price: 35, description: "", available: true },
+  { id: "p6", name: "La Baleadita", category: "platos_catrachos", price: 45, description: "", available: true },
+  { id: "p7", name: "Baleada Con Todo", category: "platos_catrachos", price: 75, description: "", available: true },
 
   // Desayunos Dulces
   { id: "p8", name: "Tostada Francesa", category: "desayunos_dulces", price: 185, description: "Helado de vainilla, dulce de leche & miel.", available: true },
@@ -108,19 +104,14 @@ const SEED_PRODUCTS = [
   { id: "p18", name: "Toscana", category: "platos_principales", price: 295, description: "Pechuga de pollo a la plancha, ensalada primavera, papas fritas, pan con ajo y aderezo.", available: true },
   { id: "p19", name: "Tenders de Pollo", category: "platos_principales", price: 265, description: "Tiras de pollo empanizadas, papas fritas, ranch & ketchup.", available: true },
 
-  // Entradas
-  { id: "p20", name: "Papas Preparadas", category: "entradas", price: 195, description: "Papas fritas, pechuga de pollo empanizada, queso cheddar, ketchup & aderezo de la casa.", available: true },
-  { id: "p21", name: "Nachos de Pollo", category: "entradas", price: 199, description: "Tortilla de maíz frita, pollo, pico de gallo, queso cheddar, aderezo de la casa & jalapeño.", available: true },
-  { id: "p22", name: "Burrito Cesar", category: "entradas", price: 180, description: "Tortilla de harina, pollo, lechuga, pico de gallo, aderezo de la casa & queso mozzarella.", available: true },
+  { id: "p20", name: "Papas Preparadas", category: "platos_principales", price: 195, description: "Papas fritas, pechuga de pollo empanizada, queso cheddar, ketchup & aderezo de la casa.", available: true },
+  { id: "p21", name: "Nachos de Pollo", category: "platos_principales", price: 199, description: "Tortilla de maíz frita, pollo, pico de gallo, queso cheddar, aderezo de la casa & jalapeño.", available: true },
+  { id: "p22", name: "Burrito Cesar", category: "platos_principales", price: 180, description: "Tortilla de harina, pollo, lechuga, pico de gallo, aderezo de la casa & queso mozzarella.", available: true },
 
   // Alitas de Pollo
   { id: "p23", name: "6 Alitas", category: "alitas_de_pollo", price: 210, description: "Salsas a elegir: BBQ, Buffalo o Agridulce.", available: true },
   { id: "p24", name: "12 Alitas", category: "alitas_de_pollo", price: 320, description: "Salsas a elegir: BBQ, Buffalo o Agridulce.", available: true },
   { id: "p25", name: "18 Alitas", category: "alitas_de_pollo", price: 455, description: "Salsas a elegir: BBQ, Buffalo o Agridulce.", available: true },
-
-  // Cortes
-  { id: "p26", name: "Puyazo (12oz)", category: "cortes", price: 490, description: "Papas fritas, ensalada primavera, pan con ajo y aderezo.", available: true },
-  { id: "p27", name: "Ribeye (12oz)", category: "cortes", price: 550, description: "Papas fritas, ensalada primavera, pan con ajo y aderezo.", available: true },
 
   // Refrescadores (12oz / 16oz)
   { id: "p28", name: "Deslumbrado", category: "refrescadores", price: 75, description: "12oz L.75 / 16oz L.95", available: true },
@@ -138,13 +129,13 @@ const SEED_PRODUCTS = [
   { id: "p38", name: "Horchata", category: "shakes", price: 75, description: "12oz L.75 / 16oz L.90", available: true },
   { id: "p39", name: "Chai", category: "shakes", price: 75, description: "12oz L.75 / 16oz L.90", available: true },
 
-  // Naturales (12oz / 16oz — mismo precio que Refrescadores)
-  { id: "p40", name: "Sandía", category: "naturales", price: 75, description: "12oz L.75 / 16oz L.95", available: true },
-  { id: "p41", name: "Melón", category: "naturales", price: 75, description: "12oz L.75 / 16oz L.95", available: true },
-  { id: "p42", name: "Piña", category: "naturales", price: 75, description: "12oz L.75 / 16oz L.95", available: true },
-  { id: "p43", name: "Fresa", category: "naturales", price: 75, description: "12oz L.75 / 16oz L.95", available: true },
-  { id: "p44", name: "Fresa Limón", category: "naturales", price: 75, description: "12oz L.75 / 16oz L.95", available: true },
-  { id: "p45", name: "Limonada", category: "naturales", price: 75, description: "12oz L.75 / 16oz L.95", available: true },
+  // Naturales (sin precio fijo)
+  { id: "p40", name: "Sandía", category: "naturales", price: 0, description: "", available: true },
+  { id: "p41", name: "Melón", category: "naturales", price: 0, description: "", available: true },
+  { id: "p42", name: "Piña", category: "naturales", price: 0, description: "", available: true },
+  { id: "p43", name: "Fresa", category: "naturales", price: 0, description: "", available: true },
+  { id: "p44", name: "Fresa Limón", category: "naturales", price: 0, description: "", available: true },
+  { id: "p45", name: "Limonada", category: "naturales", price: 0, description: "", available: true },
 
   // Iced Coffee (12oz / 16oz)
   { id: "p46", name: "Mocha", category: "iced_coffee", price: 85, description: "12oz L.85 / 16oz L.105", available: true },
@@ -581,10 +572,12 @@ function CatalogTab({ products, saveProducts, categories, saveCategories, isAdmi
         </div>
       )}
 
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         {filtered.map((p, i) =>
           editingId === p.id ? (
-            <ProductForm key={p.id} initial={p} categories={categories} onSave={(data) => { updateProduct(p.id, data); setEditingId(null); }} onCancel={() => setEditingId(null)} />
+            <div key={p.id} className="md:col-span-2 lg:col-span-3">
+              <ProductForm initial={p} categories={categories} onSave={(data) => { updateProduct(p.id, data); setEditingId(null); }} onCancel={() => setEditingId(null)} />
+            </div>
           ) : (
             <div key={p.id} className="rounded-2xl p-4 flex items-start gap-3 bg-white" style={{ border: `1px solid ${C.line}`, opacity: p.available ? 1 : 0.5 }}>
               <div className="w-1 self-stretch rounded-full flex-shrink-0" style={{ background: p.available ? "linear-gradient(#D9B65C, #8A6423)" : C.line }} />
@@ -599,8 +592,8 @@ function CatalogTab({ products, saveProducts, categories, saveCategories, isAdmi
                   <div className="font-display font-semibold text-sm mt-1.5 gold-text-grad">{p.description}</div>
                 ) : (
                   <>
-                    <div className="font-body text-sm mt-0.5" style={{ color: C.inkSoft }}>{p.description}</div>
-                    <div className="font-display font-semibold text-sm mt-1.5 gold-text-grad">L. {p.price}</div>
+                    {p.description && <div className="font-body text-sm mt-0.5" style={{ color: C.inkSoft }}>{p.description}</div>}
+                    {p.price > 0 && <div className="font-display font-semibold text-sm mt-1.5 gold-text-grad">L. {p.price}</div>}
                   </>
                 )}
               </div>
@@ -926,8 +919,8 @@ export default function ChilasApp() {
   return (
     <div className="min-h-screen" style={{ background: C.paper }}>
       {FONTS}
-      <div className="max-w-md mx-auto pb-24">
-        <div className="px-6 pt-9 pb-6 bg-white" style={{ borderBottom: `1px solid ${C.line}` }}>
+      <div className="max-w-md md:max-w-4xl mx-auto pb-24">
+        <div className="px-6 md:px-10 pt-9 md:pt-10 pb-6 bg-white" style={{ borderBottom: `1px solid ${C.line}` }}>
           <div className="flex items-start justify-between">
             <div>
               <div className="flex items-center gap-2 mb-1">
@@ -937,7 +930,7 @@ export default function ChilasApp() {
               <div className="font-display font-semibold text-3xl leading-tight" style={{ color: C.ink }}>
                 Chila's <span className="gold-text-grad">Brownies</span>
               </div>
-              <div className="font-body text-sm mt-1.5" style={{ color: C.inkSoft }}>Jutiquile, Olancho · Mié–Lun 7am–7pm</div>
+              <div className="font-body text-sm mt-1.5" style={{ color: C.inkSoft }}>Jutiquile, Olancho · Mar–Dom 8am–7pm</div>
             </div>
             <div className="flex flex-col items-end gap-2 mt-1">
               <div className="flex items-center gap-3">
@@ -977,13 +970,15 @@ export default function ChilasApp() {
           </div>
         </div>
 
-        <div className="px-5 pt-6">
+        <div className="px-5 md:px-8 pt-6 md:pt-8">
           {!ready ? (
             <div className="text-center pt-10 font-body" style={{ color: C.inkSoft }}>Cargando la tienda...</div>
           ) : tab === "catalogo" ? (
             <CatalogTab products={products} saveProducts={saveProducts} categories={categories} saveCategories={saveCategories} isAdmin={isAdmin} onUnlock={() => setIsAdmin(true)} onLock={() => setIsAdmin(false)} />
           ) : (
-            <PointsTab isAdmin={isAdmin} onUnlock={() => setIsAdmin(true)} onLock={() => setIsAdmin(false)} />
+            <div className="max-w-md mx-auto">
+              <PointsTab isAdmin={isAdmin} onUnlock={() => setIsAdmin(true)} onLock={() => setIsAdmin(false)} />
+            </div>
           )}
         </div>
       </div>
