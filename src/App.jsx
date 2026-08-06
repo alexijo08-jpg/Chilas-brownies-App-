@@ -987,8 +987,8 @@ export default function ChilasApp() {
 
       {showShare && <SharePanel shareUrl={shareUrl || SITE_URL} saveShareUrl={saveShareUrl} onClose={() => setShowShare(false)} />}
 
-      <div className="fixed bottom-0 left-0 right-0 flex justify-center">
-        <div className="max-w-md w-full flex bg-white" style={{ borderTop: `1px solid ${C.line}` }}>
+      <div className="fixed bottom-0 left-0 right-0 bg-white" style={{ borderTop: `1px solid ${C.line}` }}>
+        <div className="max-w-2xl mx-auto flex">
           {[
             { id: "catalogo", label: "Catálogo" },
             { id: "puntos", label: "Mis puntos" },
