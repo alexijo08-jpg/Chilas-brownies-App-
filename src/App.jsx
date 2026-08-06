@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Plus, Minus, Trash2, Pencil, Check, Sparkles, ChevronRight, ChevronUp, ChevronDown, Gift, Circle, Lock, Unlock, QrCode, Instagram, X, Copy } from "lucide-react";
+import { Plus, Minus, Trash2, Pencil, Check, Sparkles, ChevronRight, ChevronUp, ChevronDown, Gift, Circle, Lock, Unlock, QrCode, Instagram, MessageCircle, X, Copy } from "lucide-react";
 
 // QR Code Generator for JavaScript (c) 2009 Kazuhiko Arase, MIT license.
 // Embedded locally so QR codes render without any external network request.
@@ -77,6 +77,7 @@ const MENU_VERSION = 2;
 const STAMPS_FOR_REWARD = 6;
 const ADMIN_PIN = "1027";
 const INSTAGRAM_URL = "https://www.instagram.com/chilas_brownies?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==";
+const WHATSAPP_URL = "https://wa.me/50487500720";
 
 const SEED_PRODUCTS = [
   // Platos Catrachos
@@ -930,33 +931,47 @@ export default function ChilasApp() {
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <Circle size={6} fill={C.gold} color={C.gold} />
-                <div className="font-body text-[11px] font-semibold tracking-[0.18em] uppercase" style={{ color: C.gold }}>Tienda de postres</div>
+                <div className="font-body text-[11px] font-semibold tracking-[0.18em] uppercase" style={{ color: C.gold }}>Restaurante & Cafetería</div>
               </div>
               <div className="font-display font-semibold text-3xl leading-tight" style={{ color: C.ink }}>
                 Chila's <span className="gold-text-grad">Brownies</span>
               </div>
               <div className="font-body text-sm mt-1.5" style={{ color: C.inkSoft }}>Jutiquile, Olancho · Mié–Lun 7am–7pm</div>
             </div>
-            <div className="flex items-center gap-3 mt-1">
-              <a
-                href={INSTAGRAM_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
-                style={{ border: `1.5px solid ${C.line}` }}
-                aria-label="Instagram"
-              >
-                <Instagram size={18} color={C.gold} />
-              </a>
-              <button
-                onClick={() => setShowShare(true)}
-                className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
-                style={{ border: `1.5px solid ${C.line}` }}
-                aria-label="Compartir con código QR"
-              >
-                <QrCode size={18} color={C.gold} />
-              </button>
-              <AdminLock isAdmin={isAdmin} onUnlock={() => setIsAdmin(true)} onLock={() => setIsAdmin(false)} />
+            <div className="flex flex-col items-end gap-2 mt-1">
+              <div className="flex items-center gap-3">
+                <a
+                  href={INSTAGRAM_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
+                  style={{ border: `1.5px solid ${C.line}` }}
+                  aria-label="Instagram"
+                >
+                  <Instagram size={18} color={C.gold} />
+                </a>
+                <button
+                  onClick={() => setShowShare(true)}
+                  className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
+                  style={{ border: `1.5px solid ${C.line}` }}
+                  aria-label="Compartir con código QR"
+                >
+                  <QrCode size={18} color={C.gold} />
+                </button>
+              </div>
+              <div className="flex items-center gap-3">
+                <a
+                  href={WHATSAPP_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
+                  style={{ border: `1.5px solid ${C.line}` }}
+                  aria-label="WhatsApp"
+                >
+                  <MessageCircle size={18} color="#25D366" />
+                </a>
+                <AdminLock isAdmin={isAdmin} onUnlock={() => setIsAdmin(true)} onLock={() => setIsAdmin(false)} />
+              </div>
             </div>
           </div>
         </div>
