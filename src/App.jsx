@@ -211,6 +211,20 @@ async function robustSet(key, value, shared, attempts = 4) {
   return false;
 }
 
+async function robustList(prefix, attempts = 4) {
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const res = await fetch(`${STORAGE_ENDPOINT}?prefix=${encodeURIComponent(prefix)}`);
+      if (!res.ok) throw new Error("bad response");
+      const data = await res.json();
+      return Array.isArray(data.keys) ? data.keys : [];
+    } catch {
+      if (i < attempts - 1) await new Promise((r) => setTimeout(r, 400 * (i + 1)));
+    }
+  }
+  return [];
+}
+
 function loadConfigOnce() {
   if (!memoryCache.configPromise) {
     memoryCache.configPromise = (async () => {
@@ -293,45 +307,14 @@ async function getCustomer(phone) {
 
 async function saveCustomer(phone, data) {
   memoryCache.customers.set(phone, data);
-  const ok = await robustSet(`customer:${phone}`, JSON.stringify(data), true);
-  await addToCustomerIndex(phone);
-  return ok;
-}
-
-async function addToCustomerIndex(phone) {
-  try {
-    const res = await robustGet("customer-index", true);
-    let index = [];
-    if (res) {
-      try {
-        index = JSON.parse(res.value);
-        if (!Array.isArray(index)) index = [];
-      } catch {
-        index = [];
-      }
-    }
-    if (!index.includes(phone)) {
-      index.push(phone);
-      await robustSet("customer-index", JSON.stringify(index), true);
-    }
-  } catch {
-    // best-effort — a failed index update never blocks saving the customer's points
-  }
+  return await robustSet(`customer:${phone}`, JSON.stringify(data), true);
 }
 
 async function getAllCustomers() {
-  const res = await robustGet("customer-index", true);
-  let index = [];
-  if (res) {
-    try {
-      index = JSON.parse(res.value);
-      if (!Array.isArray(index)) index = [];
-    } catch {
-      index = [];
-    }
-  }
+  const keys = await robustList("customer:");
   const customers = [];
-  for (const phone of index) {
+  for (const key of keys) {
+    const phone = key.slice("customer:".length);
     const c = await getCustomer(phone);
     if (c) {
       const history = (c.visits && c.visits.history) || [];
