@@ -521,7 +521,7 @@ function CatalogTab({ products, saveProducts, categories, saveCategories, isAdmi
   return (
     <div>
       <div className="flex items-center gap-2 mb-2">
-        <div className="flex gap-2 flex-1 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
+        <div className="flex gap-2 flex-1 overflow-x-auto md:overflow-visible md:flex-wrap pb-1" style={{ scrollbarWidth: "none" }}>
           {categories.map((c) => {
             const activeStyle = activeCat === c.id ? { background: C.ink, color: "white", border: `1.5px solid ${C.ink}` } : { color: C.inkSoft, border: `1.5px solid ${C.line}` };
             return (
@@ -572,10 +572,10 @@ function CatalogTab({ products, saveProducts, categories, saveCategories, isAdmi
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
         {filtered.map((p, i) =>
           editingId === p.id ? (
-            <div key={p.id} className="md:col-span-2 lg:col-span-3">
+            <div key={p.id} className="md:col-span-2 lg:col-span-3 xl:col-span-4">
               <ProductForm initial={p} categories={categories} onSave={(data) => { updateProduct(p.id, data); setEditingId(null); }} onCancel={() => setEditingId(null)} />
             </div>
           ) : (
@@ -919,7 +919,7 @@ export default function ChilasApp() {
   return (
     <div className="min-h-screen" style={{ background: C.paper }}>
       {FONTS}
-      <div className="max-w-md md:max-w-4xl mx-auto pb-24">
+      <div className="max-w-md md:max-w-4xl xl:max-w-6xl mx-auto pb-24">
         <div className="px-6 md:px-10 pt-9 md:pt-10 pb-6 bg-white" style={{ borderBottom: `1px solid ${C.line}` }}>
           <div className="flex items-start justify-between">
             <div>
