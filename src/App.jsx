@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Plus, Minus, Trash2, Pencil, Check, Sparkles, ChevronRight, ChevronUp, ChevronDown, Gift, Circle, Lock, Unlock, QrCode, Instagram, MessageCircle, X, Copy } from "lucide-react";
+import { Plus, Minus, Trash2, Pencil, Check, Sparkles, ChevronRight, ChevronUp, ChevronDown, Gift, Circle, Lock, Unlock, QrCode, Instagram, MessageCircle, Download, X, Copy } from "lucide-react";
+import * as XLSX from "xlsx";
 
 // QR Code Generator for JavaScript (c) 2009 Kazuhiko Arase, MIT license.
 // Embedded locally so QR codes render without any external network request.
@@ -293,7 +294,58 @@ async function getCustomer(phone) {
 
 async function saveCustomer(phone, data) {
   memoryCache.customers.set(phone, data);
-  return await robustSet(`customer:${phone}`, JSON.stringify(data), true);
+  const ok = await robustSet(`customer:${phone}`, JSON.stringify(data), true);
+  await addToCustomerIndex(phone);
+  return ok;
+}
+
+async function addToCustomerIndex(phone) {
+  try {
+    const res = await robustGet("customer-index", true);
+    let index = [];
+    if (res) {
+      try {
+        index = JSON.parse(res.value);
+        if (!Array.isArray(index)) index = [];
+      } catch {
+        index = [];
+      }
+    }
+    if (!index.includes(phone)) {
+      index.push(phone);
+      await robustSet("customer-index", JSON.stringify(index), true);
+    }
+  } catch {
+    // best-effort — a failed index update never blocks saving the customer's points
+  }
+}
+
+async function getAllCustomers() {
+  const res = await robustGet("customer-index", true);
+  let index = [];
+  if (res) {
+    try {
+      index = JSON.parse(res.value);
+      if (!Array.isArray(index)) index = [];
+    } catch {
+      index = [];
+    }
+  }
+  const customers = [];
+  for (const phone of index) {
+    const c = await getCustomer(phone);
+    if (c) {
+      const history = (c.visits && c.visits.history) || [];
+      customers.push({
+        phone,
+        name: c.name || "",
+        visits: (c.visits && c.visits.units) || 0,
+        redeemed: (c.visits && c.visits.redeemed) || 0,
+        lastVisit: history[0] || "",
+      });
+    }
+  }
+  return customers;
 }
 
 function StampCard({ catLabel, units, redeemed, onRemove }) {
@@ -401,6 +453,46 @@ function ProductForm({ initial, categories, onSave, onCancel }) {
         </button>
       </div>
     </div>
+  );
+}
+
+function BackupButton() {
+  const [loading, setLoading] = useState(false);
+
+  const handleDownload = async () => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      const customers = await getAllCustomers();
+      const rows = customers.map((c) => ({
+        "Teléfono": c.phone,
+        "Nombre": c.name,
+        "Visitas totales": c.visits,
+        "Premios canjeados": c.redeemed,
+        "Última visita": c.lastVisit ? formatVisitDate(c.lastVisit) : "",
+      }));
+      const ws = XLSX.utils.json_to_sheet(rows.length ? rows : [{ "Teléfono": "", "Nombre": "", "Visitas totales": "", "Premios canjeados": "", "Última visita": "" }]);
+      ws["!cols"] = [{ wch: 14 }, { wch: 24 }, { wch: 16 }, { wch: 18 }, { wch: 20 }];
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Clientes");
+      const fecha = new Date().toISOString().slice(0, 10);
+      XLSX.writeFile(wb, `respaldo-clientes-${fecha}.xlsx`);
+    } catch {
+      alert("No se pudo generar el respaldo. Intenta de nuevo.");
+    }
+    setLoading(false);
+  };
+
+  return (
+    <button
+      onClick={handleDownload}
+      disabled={loading}
+      className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center disabled:opacity-50"
+      style={{ border: `1.5px solid ${C.line}` }}
+      aria-label="Descargar respaldo de clientes"
+    >
+      <Download size={18} color={C.gold} />
+    </button>
   );
 }
 
@@ -946,6 +1038,7 @@ export default function ChilasApp() {
                 >
                   <Instagram size={18} color={C.gold} />
                 </a>
+                {isAdmin && <BackupButton />}
                 <button
                   onClick={() => setShowShare(true)}
                   className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
