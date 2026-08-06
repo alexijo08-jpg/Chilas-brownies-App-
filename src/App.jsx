@@ -572,10 +572,10 @@ function CatalogTab({ products, saveProducts, categories, saveCategories, isAdmi
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+      <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
         {filtered.map((p, i) =>
           editingId === p.id ? (
-            <div key={p.id} className="md:col-span-2 lg:col-span-3 xl:col-span-4">
+            <div key={p.id} style={{ gridColumn: "1 / -1" }}>
               <ProductForm initial={p} categories={categories} onSave={(data) => { updateProduct(p.id, data); setEditingId(null); }} onCancel={() => setEditingId(null)} />
             </div>
           ) : (
@@ -919,8 +919,8 @@ export default function ChilasApp() {
   return (
     <div className="min-h-screen" style={{ background: C.paper }}>
       {FONTS}
-      <div className="max-w-md md:max-w-4xl xl:max-w-6xl mx-auto pb-24">
-        <div className="px-6 md:px-10 pt-9 md:pt-10 pb-6 bg-white" style={{ borderBottom: `1px solid ${C.line}` }}>
+      <div className="w-full mx-auto pb-24">
+        <div className="px-6 md:px-10 lg:px-14 2xl:px-20 pt-9 md:pt-10 pb-6 bg-white" style={{ borderBottom: `1px solid ${C.line}` }}>
           <div className="flex items-start justify-between">
             <div>
               <div className="flex items-center gap-2 mb-1">
@@ -970,7 +970,7 @@ export default function ChilasApp() {
           </div>
         </div>
 
-        <div className="px-5 md:px-8 pt-6 md:pt-8">
+        <div className="px-5 md:px-8 lg:px-12 2xl:px-20 pt-6 md:pt-8">
           {!ready ? (
             <div className="text-center pt-10 font-body" style={{ color: C.inkSoft }}>Cargando la tienda...</div>
           ) : tab === "catalogo" ? (
