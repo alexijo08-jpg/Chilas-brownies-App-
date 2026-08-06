@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Plus, Minus, Trash2, Pencil, Check, Sparkles, ChevronRight, ChevronUp, ChevronDown, Gift, Circle, Lock, Unlock, QrCode, Instagram, MessageCircle, Users, X, Copy } from "lucide-react";
+import { Plus, Minus, Trash2, Pencil, Check, Sparkles, ChevronRight, ChevronUp, ChevronDown, Gift, Circle, Lock, Unlock, QrCode, Instagram, MessageCircle, Users, Search, X, Copy } from "lucide-react";
 
 // QR Code Generator for JavaScript (c) 2009 Kazuhiko Arase, MIT license.
 // Embedded locally so QR codes render without any external network request.
@@ -533,6 +533,7 @@ function CustomerListPanel({ onClose }) {
   const [deletingPhone, setDeletingPhone] = useState(null);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [opening, setOpening] = useState(null);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -542,6 +543,13 @@ function CustomerListPanel({ onClose }) {
       setLoading(false);
     })();
   }, []);
+
+  const normalize = (s) =>
+    (s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+  const filteredCustomers = search.trim()
+    ? customers.filter((c) => normalize(c.name).includes(normalize(search)) || c.phone.includes(search.trim()))
+    : customers;
 
   const openCustomer = async (c) => {
     setOpening(c.phone);
@@ -598,8 +606,23 @@ function CustomerListPanel({ onClose }) {
         ) : customers.length === 0 ? (
           <div className="text-center pt-10 font-body text-sm" style={{ color: C.inkSoft }}>Todavía no hay clientes registrados.</div>
         ) : (
-          <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
-            {customers.map((c) => {
+          <>
+            <div className="relative mb-4 max-w-md">
+              <Search size={16} color={C.inkSoft} className="absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                className="w-full rounded-xl pl-10 pr-3.5 py-2.5 font-body text-sm outline-none"
+                style={inputStyle()}
+                placeholder="Buscar por nombre o teléfono..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+
+            {filteredCustomers.length === 0 ? (
+              <div className="text-center py-10 font-body text-sm" style={{ color: C.inkSoft }}>Ningún cliente coincide con "{search}".</div>
+            ) : (
+              <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
+                {filteredCustomers.map((c) => {
               const available = Math.floor(c.visits / STAMPS_FOR_REWARD) - c.redeemed;
               const isConfirming = confirmingPhone === c.phone;
               const isDeleting = deletingPhone === c.phone;
@@ -659,8 +682,10 @@ function CustomerListPanel({ onClose }) {
                   )}
                 </div>
               );
-            })}
-          </div>
+                })}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
