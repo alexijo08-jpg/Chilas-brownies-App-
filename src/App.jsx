@@ -76,6 +76,7 @@ const ADMIN_PIN = "0022";
 const INSTAGRAM_URL = "https://www.instagram.com/chilas_brownies?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==";
 const WHATSAPP_URL = "https://wa.me/50487500720";
 const SITE_URL = "https://chilasbrownies.netlify.app";
+const MAPS_URL = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent("Chila's Brownies, Jutiquile, Olancho, Honduras");
 
 const SEED_PRODUCTS = [
   // Platos Catrachos
@@ -930,7 +931,12 @@ export default function ChilasApp() {
               <div className="font-display font-semibold text-3xl leading-tight" style={{ color: C.ink }}>
                 Chila's <span className="gold-text-grad">Brownies</span>
               </div>
-              <div className="font-body text-sm mt-1.5" style={{ color: C.inkSoft }}>Jutiquile, Olancho · Mar–Dom 8am–7pm</div>
+              <div className="font-body text-sm mt-1.5" style={{ color: C.inkSoft }}>
+                <a href={MAPS_URL} target="_blank" rel="noopener noreferrer" className="underline" style={{ textDecorationColor: C.line }}>
+                  Jutiquile, Olancho
+                </a>
+                {" · Mar–Dom 8am–7pm"}
+              </div>
             </div>
             <div className="flex flex-col items-end gap-2 mt-1">
               <div className="flex items-center gap-3">
