@@ -12,6 +12,18 @@ export default async (req) => {
 
   try {
     if (req.method === "GET") {
+      const prefix = url.searchParams.get("prefix");
+      if (prefix !== null) {
+        let keys = [];
+        let cursor;
+        do {
+          const result = await store.list({ prefix, cursor });
+          keys = keys.concat(result.blobs.map((b) => b.key));
+          cursor = result.cursor;
+        } while (cursor);
+        return json({ keys });
+      }
+
       const key = url.searchParams.get("key");
       if (!key) return json({ error: "missing key" }, 400);
       const value = await store.get(key);
