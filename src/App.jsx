@@ -225,6 +225,19 @@ async function robustList(prefix, attempts = 4) {
   return [];
 }
 
+async function robustDelete(key, attempts = 4) {
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const res = await fetch(`${STORAGE_ENDPOINT}?key=${encodeURIComponent(key)}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("bad response");
+      return true;
+    } catch {
+      if (i < attempts - 1) await new Promise((r) => setTimeout(r, 400 * (i + 1)));
+    }
+  }
+  return false;
+}
+
 function loadConfigOnce() {
   if (!memoryCache.configPromise) {
     memoryCache.configPromise = (async () => {
@@ -308,6 +321,11 @@ async function getCustomer(phone) {
 async function saveCustomer(phone, data) {
   memoryCache.customers.set(phone, data);
   return await robustSet(`customer:${phone}`, JSON.stringify(data), true);
+}
+
+async function deleteCustomer(phone) {
+  memoryCache.customers.delete(phone);
+  return await robustDelete(`customer:${phone}`);
 }
 
 async function getAllCustomers() {
@@ -441,6 +459,8 @@ function ProductForm({ initial, categories, onSave, onCancel }) {
 function CustomerListPanel({ onClose }) {
   const [loading, setLoading] = useState(true);
   const [customers, setCustomers] = useState([]);
+  const [confirmingPhone, setConfirmingPhone] = useState(null);
+  const [deletingPhone, setDeletingPhone] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -450,6 +470,18 @@ function CustomerListPanel({ onClose }) {
       setLoading(false);
     })();
   }, []);
+
+  const handleDelete = async (phone) => {
+    setDeletingPhone(phone);
+    const ok = await deleteCustomer(phone);
+    setDeletingPhone(null);
+    setConfirmingPhone(null);
+    if (ok) {
+      setCustomers((prev) => prev.filter((c) => c.phone !== phone));
+    } else {
+      alert("No se pudo eliminar al cliente. Intenta de nuevo.");
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col" style={{ background: C.paper }}>
@@ -472,13 +504,25 @@ function CustomerListPanel({ onClose }) {
           <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
             {customers.map((c) => {
               const available = Math.floor(c.visits / STAMPS_FOR_REWARD) - c.redeemed;
+              const isConfirming = confirmingPhone === c.phone;
+              const isDeleting = deletingPhone === c.phone;
               return (
-                <div key={c.phone} className="rounded-2xl p-4 bg-white" style={{ border: `1px solid ${C.line}` }}>
+                <div key={c.phone} className="rounded-2xl p-4 bg-white" style={{ border: `1px solid ${isConfirming ? C.berry : C.line}` }}>
                   <div className="flex items-center justify-between">
                     <div className="font-display font-semibold text-base" style={{ color: C.ink }}>{c.name || "Sin nombre"}</div>
-                    {available > 0 && (
-                      <span className="text-[10px] font-body font-semibold px-2 py-0.5 rounded-full gold-grad text-white">{available} premio{available > 1 ? "s" : ""}</span>
-                    )}
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      {available > 0 && !isConfirming && (
+                        <span className="text-[10px] font-body font-semibold px-2 py-0.5 rounded-full gold-grad text-white">{available} premio{available > 1 ? "s" : ""}</span>
+                      )}
+                      <button
+                        onClick={() => setConfirmingPhone(isConfirming ? null : c.phone)}
+                        className="w-7 h-7 rounded-full flex items-center justify-center"
+                        style={{ background: isConfirming ? C.line : C.paper }}
+                        aria-label="Eliminar cliente"
+                      >
+                        <Trash2 size={13} color={C.berry} />
+                      </button>
+                    </div>
                   </div>
                   <div className="font-body text-sm mt-0.5" style={{ color: C.inkSoft }}>{c.phone}</div>
                   <div className="flex items-center gap-4 mt-2.5 font-body text-sm" style={{ color: C.inkSoft }}>
@@ -487,6 +531,29 @@ function CustomerListPanel({ onClose }) {
                   </div>
                   {c.lastVisit && (
                     <div className="font-body text-xs mt-1.5" style={{ color: C.inkSoft }}>Última visita: {formatVisitDate(c.lastVisit)}</div>
+                  )}
+                  {isConfirming && (
+                    <div className="mt-3 pt-3" style={{ borderTop: `1px solid ${C.line}` }}>
+                      <div className="font-body text-xs mb-2" style={{ color: C.berry }}>¿Eliminar a {c.name || "este cliente"} y todos sus puntos? No se puede deshacer.</div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleDelete(c.phone)}
+                          disabled={isDeleting}
+                          className="flex-1 rounded-lg py-2 font-display font-semibold text-xs text-white disabled:opacity-60"
+                          style={{ background: C.berry }}
+                        >
+                          {isDeleting ? "Eliminando..." : "Sí, eliminar"}
+                        </button>
+                        <button
+                          onClick={() => setConfirmingPhone(null)}
+                          disabled={isDeleting}
+                          className="rounded-lg py-2 px-3 font-body text-xs"
+                          style={{ border: `1.5px solid ${C.line}`, color: C.inkSoft }}
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    </div>
                   )}
                 </div>
               );
