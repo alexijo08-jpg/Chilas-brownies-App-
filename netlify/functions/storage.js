@@ -38,6 +38,13 @@ export default async (req) => {
       return json({ ok: true });
     }
 
+    if (req.method === "DELETE") {
+      const key = url.searchParams.get("key");
+      if (!key) return json({ error: "missing key" }, 400);
+      await store.delete(key);
+      return json({ ok: true });
+    }
+
     return json({ error: "method not allowed" }, 405);
   } catch (err) {
     return json({ error: String(err) }, 500);
