@@ -71,7 +71,7 @@ const SEED_CATEGORIES = [
 ];
 
 const MENU_VERSION = 3;
-const STAMPS_FOR_REWARD = 6;
+const STAMPS_FOR_REWARD = 10;
 const ADMIN_PIN = "0022";
 const INSTAGRAM_URL = "https://www.instagram.com/chilas_brownies?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==";
 const WHATSAPP_URL = "https://wa.me/50487500720";
@@ -311,7 +311,7 @@ function StampCard({ catLabel, units, redeemed, onRemove }) {
           </div>
         )}
       </div>
-      <div className="grid grid-cols-6 gap-2.5">
+      <div className="grid grid-cols-5 gap-2.5">
         {stamps.map((_, i) => {
           const filled = i < currentInCard;
           const isNext = i === currentInCard;
