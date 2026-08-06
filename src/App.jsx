@@ -456,11 +456,83 @@ function ProductForm({ initial, categories, onSave, onCancel }) {
   );
 }
 
+function CustomerDetail({ customer, onBack, onUpdated }) {
+  const [visits, setVisits] = useState(customer.visits);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(false);
+
+  const commit = async (nextVisits) => {
+    setVisits(nextVisits);
+    setSaving(true);
+    setSaveError(false);
+    const ok = await saveCustomer(customer.phone, { name: customer.name, visits: nextVisits });
+    setSaving(false);
+    if (ok) {
+      onUpdated(customer.phone, nextVisits);
+    } else {
+      setSaveError(true);
+    }
+  };
+
+  const addVisit = () => {
+    const history = [new Date().toISOString(), ...(visits.history || [])];
+    commit({ ...visits, units: visits.units + 1, history });
+  };
+
+  const removeVisit = () => {
+    const nextUnits = Math.max(0, visits.units - 1);
+    const nextRedeemed = Math.min(visits.redeemed, Math.floor(nextUnits / STAMPS_FOR_REWARD));
+    const history = (visits.history || []).slice(1);
+    commit({ units: nextUnits, redeemed: nextRedeemed, history });
+  };
+
+  const redeemReward = () => {
+    commit({ ...visits, redeemed: visits.redeemed + 1 });
+  };
+
+  const available = Math.floor(visits.units / STAMPS_FOR_REWARD) - visits.redeemed;
+
+  return (
+    <div>
+      <button onClick={onBack} className="flex items-center gap-1 font-body text-sm mb-4" style={{ color: C.inkSoft }}>
+        <ChevronRight size={16} style={{ transform: "rotate(180deg)" }} /> Volver a la lista
+      </button>
+
+      <div className="mb-5">
+        <div className="font-display font-semibold text-xl" style={{ color: C.ink }}>{customer.name || "Sin nombre"}</div>
+        <div className="font-body text-sm mt-0.5" style={{ color: C.inkSoft }}>{customer.phone}</div>
+      </div>
+
+      {saveError && (
+        <div className="rounded-xl px-3.5 py-2.5 mb-4 font-body text-xs" style={{ background: C.gold + "15", color: C.goldDeep }}>
+          El cambio quedó guardado en este dispositivo, pero tardó en sincronizar con el servidor.
+        </div>
+      )}
+
+      <div className="max-w-md">
+        <StampCard catLabel="Visitas a Chila's Brownies" units={visits.units} redeemed={visits.redeemed} onRemove={!saving ? removeVisit : null} />
+
+        {available > 0 && (
+          <button disabled={saving} className="w-full mt-1.5 rounded-xl py-2.5 font-display font-semibold text-sm text-white flex items-center justify-center gap-1" style={{ background: C.berry, opacity: saving ? 0.6 : 1 }} onClick={redeemReward}>
+            <Gift size={14} /> Canjear premio
+          </button>
+        )}
+
+        <button disabled={saving} className="mt-4 w-full rounded-2xl py-3.5 font-display font-semibold text-sm flex items-center justify-center gap-1" style={{ border: `1.5px dashed ${C.goldLight}`, color: C.gold, opacity: saving ? 0.6 : 1 }} onClick={addVisit}>
+          <Plus size={16} /> {saving ? "Guardando..." : "Registrar visita"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function CustomerListPanel({ onClose }) {
   const [loading, setLoading] = useState(true);
   const [customers, setCustomers] = useState([]);
   const [confirmingPhone, setConfirmingPhone] = useState(null);
   const [deletingPhone, setDeletingPhone] = useState(null);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [opening, setOpening] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -470,6 +542,27 @@ function CustomerListPanel({ onClose }) {
       setLoading(false);
     })();
   }, []);
+
+  const openCustomer = async (c) => {
+    setOpening(c.phone);
+    const full = await getCustomer(c.phone);
+    setOpening(null);
+    setSelectedCustomer({
+      phone: c.phone,
+      name: c.name,
+      visits: full && full.visits ? { history: [], ...full.visits } : { units: c.visits, redeemed: c.redeemed, history: [] },
+    });
+  };
+
+  const handleCustomerUpdated = (phone, nextVisits) => {
+    setCustomers((prev) =>
+      prev.map((c) =>
+        c.phone === phone
+          ? { ...c, visits: nextVisits.units, redeemed: nextVisits.redeemed, lastVisit: (nextVisits.history && nextVisits.history[0]) || c.lastVisit }
+          : c
+      )
+    );
+  };
 
   const handleDelete = async (phone) => {
     setDeletingPhone(phone);
@@ -487,8 +580,10 @@ function CustomerListPanel({ onClose }) {
     <div className="fixed inset-0 z-50 flex flex-col" style={{ background: C.paper }}>
       <div className="flex items-center justify-between px-5 md:px-8 pt-6 pb-4 bg-white" style={{ borderBottom: `1px solid ${C.line}` }}>
         <div>
-          <div className="font-display font-semibold text-lg" style={{ color: C.ink }}>Clientes</div>
-          <div className="font-body text-xs mt-0.5" style={{ color: C.inkSoft }}>{loading ? "Cargando..." : `${customers.length} cliente${customers.length === 1 ? "" : "s"} registrado${customers.length === 1 ? "" : "s"}`}</div>
+          <div className="font-display font-semibold text-lg" style={{ color: C.ink }}>{selectedCustomer ? selectedCustomer.name || "Cliente" : "Clientes"}</div>
+          <div className="font-body text-xs mt-0.5" style={{ color: C.inkSoft }}>
+            {selectedCustomer ? selectedCustomer.phone : loading ? "Cargando..." : `${customers.length} cliente${customers.length === 1 ? "" : "s"} registrado${customers.length === 1 ? "" : "s"}`}
+          </div>
         </div>
         <button onClick={onClose} className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: C.paper, border: `1px solid ${C.line}` }}>
           <X size={18} color={C.inkSoft} />
@@ -496,7 +591,9 @@ function CustomerListPanel({ onClose }) {
       </div>
 
       <div className="flex-1 overflow-y-auto px-5 md:px-8 py-5">
-        {loading ? (
+        {selectedCustomer ? (
+          <CustomerDetail customer={selectedCustomer} onBack={() => setSelectedCustomer(null)} onUpdated={handleCustomerUpdated} />
+        ) : loading ? (
           <div className="text-center pt-10 font-body" style={{ color: C.inkSoft }}>Cargando clientes...</div>
         ) : customers.length === 0 ? (
           <div className="text-center pt-10 font-body text-sm" style={{ color: C.inkSoft }}>Todavía no hay clientes registrados.</div>
@@ -507,7 +604,12 @@ function CustomerListPanel({ onClose }) {
               const isConfirming = confirmingPhone === c.phone;
               const isDeleting = deletingPhone === c.phone;
               return (
-                <div key={c.phone} className="rounded-2xl p-4 bg-white" style={{ border: `1px solid ${isConfirming ? C.berry : C.line}` }}>
+                <div
+                  key={c.phone}
+                  onClick={() => !isConfirming && openCustomer(c)}
+                  className="rounded-2xl p-4 bg-white cursor-pointer"
+                  style={{ border: `1px solid ${isConfirming ? C.berry : C.line}`, opacity: opening === c.phone ? 0.6 : 1 }}
+                >
                   <div className="flex items-center justify-between">
                     <div className="font-display font-semibold text-base" style={{ color: C.ink }}>{c.name || "Sin nombre"}</div>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -515,7 +617,7 @@ function CustomerListPanel({ onClose }) {
                         <span className="text-[10px] font-body font-semibold px-2 py-0.5 rounded-full gold-grad text-white">{available} premio{available > 1 ? "s" : ""}</span>
                       )}
                       <button
-                        onClick={() => setConfirmingPhone(isConfirming ? null : c.phone)}
+                        onClick={(e) => { e.stopPropagation(); setConfirmingPhone(isConfirming ? null : c.phone); }}
                         className="w-7 h-7 rounded-full flex items-center justify-center"
                         style={{ background: isConfirming ? C.line : C.paper }}
                         aria-label="Eliminar cliente"
