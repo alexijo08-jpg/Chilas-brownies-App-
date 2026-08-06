@@ -924,10 +924,6 @@ export default function ChilasApp() {
         <div className="px-6 md:px-10 lg:px-14 2xl:px-20 pt-9 md:pt-10 pb-6 bg-white" style={{ borderBottom: `1px solid ${C.line}` }}>
           <div className="flex items-start justify-between">
             <div>
-              <div className="flex items-center gap-2 mb-1">
-                <Circle size={6} fill={C.gold} color={C.gold} />
-                <div className="font-body text-[11px] font-semibold tracking-[0.18em] uppercase" style={{ color: C.gold }}>Restaurante & Cafetería</div>
-              </div>
               <div className="font-display font-semibold text-3xl leading-tight" style={{ color: C.ink }}>
                 Chila's <span className="gold-text-grad">Brownies</span>
               </div>
