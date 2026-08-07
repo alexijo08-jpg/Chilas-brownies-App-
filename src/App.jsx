@@ -1120,9 +1120,7 @@ function PointsTab({ isAdmin, onUnlock, onLock }) {
   if (!activePhone) {
     return (
       <div className="flex flex-col items-center pt-8 gap-4">
-        <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-white" style={{ border: `1.5px solid ${C.line}` }}>
-          <img src="/logo.png" alt="Chila's Brownies" className="w-11 h-11 object-contain" />
-        </div>
+        <img src="/logo.png" alt="Chila's Brownies" className="w-28 h-28 object-contain" style={{ filter: "drop-shadow(0 2px 8px rgba(184,137,46,0.25))" }} />
         <div className="text-center">
           <div className="font-display font-semibold text-lg" style={{ color: C.ink }}>Tu tarjeta de puntos</div>
           <div className="font-body text-sm mt-0.5" style={{ color: C.inkSoft }}>Ingresá tu número de teléfono</div>
