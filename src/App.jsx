@@ -103,7 +103,7 @@ const SEED_PRODUCTS = [
   { id: "p16", name: "Water Burger", category: "platos_principales", price: 310, description: "Carne de res & cerdo, queso muenster & papas fritas.", available: true },
   { id: "p17", name: "Chicken Burger", category: "platos_principales", price: 295, description: "Pechuga de pollo empanizada, queso, lechuga, aderezo y papas fritas.", available: true },
   { id: "p18", name: "Toscana", category: "platos_principales", price: 295, description: "Pechuga de pollo a la plancha, ensalada primavera, papas fritas, pan con ajo y aderezo.", available: true },
-  { id: "p19", name: "Tenders de Pollo", category: "platos_principales", price: 265, description: "Tiras de pollo empanizadas, papas fritas, ranch & ketchup.", available: true },
+  { id: "p19", name: "Tenders de Pollo", category: "platos_principales", price: 195, description: "Tiras de pollo empanizadas, papas fritas, ranch & ketchup.", available: true },
 
   { id: "p20", name: "Papas Preparadas", category: "platos_principales", price: 195, description: "Papas fritas, pechuga de pollo empanizada, queso cheddar, ketchup & aderezo de la casa.", available: true },
   { id: "p21", name: "Nachos de Pollo", category: "platos_principales", price: 199, description: "Tortilla de maíz frita, pollo, pico de gallo, queso cheddar, aderezo de la casa & jalapeño.", available: true },
@@ -556,7 +556,7 @@ function CustomerDetail({ customer, onBack, onUpdated }) {
   );
 }
 
-function CustomerListPanel({ onClose }) {
+function CustomerListPanel({ onClose, onLock }) {
   const [loading, setLoading] = useState(true);
   const [customers, setCustomers] = useState([]);
   const [confirmingPhone, setConfirmingPhone] = useState(null);
@@ -623,9 +623,21 @@ function CustomerListPanel({ onClose }) {
             {selectedCustomer ? selectedCustomer.phone : loading ? "Cargando..." : `${customers.length} cliente${customers.length === 1 ? "" : "s"} registrado${customers.length === 1 ? "" : "s"}`}
           </div>
         </div>
-        <button onClick={onClose} className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: C.paper, border: `1px solid ${C.line}` }}>
-          <X size={18} color={C.inkSoft} />
-        </button>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {onLock && (
+            <button
+              onClick={() => { onLock(); onClose(); }}
+              className="h-9 rounded-full flex items-center justify-center gap-1.5 px-3.5"
+              style={{ background: C.gold + "20", border: `1.5px solid ${C.gold}` }}
+            >
+              <Unlock size={14} color={C.gold} />
+              <span className="font-display font-semibold text-xs" style={{ color: C.goldDeep }}>Salir</span>
+            </button>
+          )}
+          <button onClick={onClose} className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: C.paper, border: `1px solid ${C.line}` }}>
+            <X size={18} color={C.inkSoft} />
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-5 md:px-8 py-5">
@@ -815,10 +827,18 @@ function AdminLock({ isAdmin, onUnlock, onLock }) {
     <div className="relative flex-shrink-0">
       <button
         onClick={handleClick}
-        className="w-6 h-6 flex items-center justify-center"
+        className={isAdmin ? "h-10 rounded-full flex items-center justify-center gap-1.5 px-4" : "w-6 h-6 flex items-center justify-center"}
+        style={isAdmin ? { background: C.gold + "20", border: `1.5px solid ${C.gold}` } : undefined}
         aria-label={isAdmin ? "Salir del modo administrador" : "Acceso administrador"}
       >
-        {isAdmin ? <Unlock size={13} color={C.gold} /> : <Lock size={13} color="#DAD4C8" />}
+        {isAdmin ? (
+          <>
+            <Unlock size={16} color={C.gold} />
+            <span className="font-display font-semibold text-sm" style={{ color: C.goldDeep }}>Salir</span>
+          </>
+        ) : (
+          <Lock size={13} color="#DAD4C8" />
+        )}
       </button>
 
       {open && !isAdmin && (
@@ -1392,7 +1412,7 @@ export default function ChilasApp() {
       </div>
 
       {showShare && <SharePanel shareUrl={shareUrl || SITE_URL} saveShareUrl={saveShareUrl} onClose={() => setShowShare(false)} />}
-      {showCustomers && <CustomerListPanel onClose={() => setShowCustomers(false)} />}
+      {showCustomers && <CustomerListPanel onClose={() => setShowCustomers(false)} onLock={() => setIsAdmin(false)} />}
 
       <div className="fixed bottom-0 left-0 right-0 bg-white" style={{ borderTop: `1px solid ${C.line}` }}>
         <div className="max-w-2xl mx-auto flex">
