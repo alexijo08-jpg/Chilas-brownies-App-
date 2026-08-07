@@ -1120,8 +1120,8 @@ function PointsTab({ isAdmin, onUnlock, onLock }) {
   if (!activePhone) {
     return (
       <div className="flex flex-col items-center pt-8 gap-4">
-        <div className="w-16 h-16 rounded-2xl flex items-center justify-center gold-grad">
-          <Sparkles color="white" size={26} />
+        <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-white" style={{ border: `1.5px solid ${C.line}` }}>
+          <img src="/logo.png" alt="Chila's Brownies" className="w-11 h-11 object-contain" />
         </div>
         <div className="text-center">
           <div className="font-display font-semibold text-lg" style={{ color: C.ink }}>Tu tarjeta de puntos</div>
